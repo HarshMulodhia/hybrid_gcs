@@ -1,0 +1,32 @@
+"""
+Requirements for Hybrid-GCS project.
+
+Core dependencies for the Hybrid-GCS system.
+Optional dependencies can be installed with: pip install -e ".[extra]"
+"""
+
+# Core dependencies
+numpy>=1.21.0
+scipy>=1.7.0
+torch>=1.10.0
+pydantic>=1.8.0
+PyYAML>=5.4.0
+
+# Development dependencies (optional)
+# pytest>=6.2.0
+# pytest-cov>=2.12.0
+# black>=21.7b0
+# pylint>=2.9.0
+# mypy>=0.910
+
+# Simulation (optional)
+# pybullet>=3.1.0
+
+# Solvers (optional)
+# scs>=3.0.0         # Free solver
+# mosek>=10.0.0      # Requires academic license
+# gurobipy>=9.0.0    # Requires license
+
+# Visualization and ML (optional)
+# matplotlib>=3.4.0
+# tensorboard>=2.8.0
