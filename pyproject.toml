@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybrid-gcs"
+version = "0.1.0"
+description = "Hybrid GCS + Deep RL for Robotics"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Harsh Mulodhia", email = "hajiharsh598@gmail.com"}
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+known_first_party = "hybrid_gcs"
+known_third_party = ["numpy", "torch", "pytest"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+allow_untyped_defs = true
+ignore_missing_imports = true
+strict_optional = true
+
+[tool.pylint.messages_control]
+disable = [
+    "C0103",  # Invalid name
+    "C0302",  # Too many lines
+    "R0913",  # Too many arguments
+    "W0212",  # Protected access
+]
+
+[tool.coverage.run]
+source = ["hybrid_gcs"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
