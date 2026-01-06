@@ -225,50 +225,173 @@ class IRISDecomposer:
         return None
     
     def _min_distance_to_obstacles(self,
-                                  center: np.ndarray,
-                                  Q: np.ndarray,
-                                  obstacles: List) -> float:
+                                center: np.ndarray,
+                                Q: np.ndarray,
+                                obstacles: List) -> float:
         """
-        Find minimum distance from ellipsoid to obstacles.
-        
-        Simplified: Returns distance as if expanding uniformly.
-        In practice, would solve optimization problem for exact distance.
-        
-        Args:
-            center: Ellipsoid center [dim]
-            Q: Shape matrix [dim, dim]
-            obstacles: List of obstacles
-        
-        Returns:
-            Minimum distance to any obstacle (or infinity if none)
+        Compute the *exact* minimum Euclidean distance between the ellipsoid
+
+            E = { x : (x-center)^T Q (x-center) <= 1 }
+
+        and each obstacle, by solving the convex optimization
+
+            minimize    ||x - y||_2
+            subject to  x ∈ E
+                        y ∈ O
+
+        for each obstacle O, then returning the minimum over all obstacles.
+
+        Notes
+        -----
+        - For convex obstacles (box / polytope / ball), this is a convex SOCP.
+        - If the ellipsoid intersects an obstacle, the optimum is 0.
+        - This method requires CVXPY for the exact solve. If CVXPY is not
+        available or an obstacle cannot be converted to constraints,
+        the method falls back to `obstacle.signed_distance(center)` when possible.
+
+        Supported obstacle encodings
+        ----------------------------
+        1) Axis-aligned box: attributes `lower` and `upper`
+        (as in `SimpleBoxObstacle` in this file)
+
+        2) Polytope (H-rep): attributes `A` and `b` meaning A @ y <= b
+        (common in motion planning / GCS codebases)
+
+        3) Ball: attributes `center` and `radius` meaning ||y - center||_2 <= radius
+
+        4) Custom: method `cvxpy_constraints(y_var)` returning a list of CVXPY constraints
+
+        Returns
+        -------
+        float
+            Minimum distance from the ellipsoid to any obstacle.
+            Returns +inf if no obstacles are provided (or if none are solvable and no fallback is available).
         """
         if not obstacles:
-            return float('inf')
-        
-        min_dist = float('inf')
-        
+            return float("inf")
+
+        center = np.asarray(center, dtype=np.float64).reshape(-1)
+        Q = np.asarray(Q, dtype=np.float64)
+
+        dim = center.shape[0]
+        if Q.shape != (dim, dim):
+            raise ValueError(f"Q has shape {Q.shape}, expected {(dim, dim)}")
+
+        # Symmetrize Q (numerical hygiene)
+        Q = 0.5 * (Q + Q.T)
+
+        # Convert ellipsoid quadratic constraint to SOC form:
+        # (x-c)^T Q (x-c) <= 1  <=>  ||L (x-c)||_2 <= 1  where Q = L^T L.
+        # Use Cholesky if possible, otherwise fall back to eigen-decomposition.
+        try:
+            L = np.linalg.cholesky(Q)
+        except np.linalg.LinAlgError:
+            w, V = np.linalg.eigh(Q)
+            # Clamp tiny/negative eigenvalues due to numerics
+            w = np.maximum(w, 1e-12)
+            # Q = V diag(w) V^T = (diag(sqrt(w)) V^T)^T (diag(sqrt(w)) V^T)
+            L = (np.diag(np.sqrt(w)) @ V.T)
+
+        # Try to use CVXPY for the exact convex solve
+        try:
+            import cvxpy as cp
+        except Exception:
+            cp = None
+
+        min_dist = float("inf")
+
         for obstacle in obstacles:
-            # Sample points on ellipsoid and check distance
-            # This is a simplified version - full implementation would
-            # solve optimization problem
-            
-            # Use eigenvalues to estimate ellipsoid expansion
-            eigenvalues = np.linalg.eigvalsh(Q)
-            # Conservative estimate: minimum eigenvalue
-            expansion = 1.0 / np.sqrt(np.min(eigenvalues))
-            
-            # Check if center approaches obstacle
+            # --- Exact solve via CVXPY when possible ---
+            if cp is not None:
+                x = cp.Variable(dim)
+                y = cp.Variable(dim)
+
+                constraints = []
+                # Ellipsoid: ||L (x-center)||_2 <= 1
+                constraints.append(cp.norm(L @ (x - center), 2) <= 1.0)
+
+                # Obstacle constraints
+                obstacle_ok = True
+
+                # (4) Custom constraint hook: obstacle.cvxpy_constraints(y)
+                if hasattr(obstacle, "cvxpy_constraints") and callable(getattr(obstacle, "cvxpy_constraints")):
+                    try:
+                        extra = obstacle.cvxpy_constraints(y)
+                        if extra is None:
+                            extra = []
+                        constraints.extend(list(extra))
+                    except Exception:
+                        obstacle_ok = False
+
+                # (1) Axis-aligned box: lower <= y <= upper
+                elif hasattr(obstacle, "lower") and hasattr(obstacle, "upper"):
+                    lower = np.asarray(obstacle.lower, dtype=np.float64).reshape(-1)
+                    upper = np.asarray(obstacle.upper, dtype=np.float64).reshape(-1)
+                    if lower.shape[0] != dim or upper.shape[0] != dim:
+                        obstacle_ok = False
+                    else:
+                        constraints += [y >= lower, y <= upper]
+
+                # (2) Polytope: A y <= b
+                elif hasattr(obstacle, "A") and hasattr(obstacle, "b"):
+                    A = np.asarray(obstacle.A, dtype=np.float64)
+                    b = np.asarray(obstacle.b, dtype=np.float64).reshape(-1)
+                    if A.ndim != 2 or A.shape[1] != dim or A.shape[0] != b.shape[0]:
+                        obstacle_ok = False
+                    else:
+                        constraints.append(A @ y <= b)
+
+                # (3) Ball: ||y - c|| <= r
+                elif hasattr(obstacle, "center") and hasattr(obstacle, "radius"):
+                    oc = np.asarray(obstacle.center, dtype=np.float64).reshape(-1)
+                    r = float(obstacle.radius)
+                    if oc.shape[0] != dim or r < 0:
+                        obstacle_ok = False
+                    else:
+                        constraints.append(cp.norm(y - oc, 2) <= r)
+
+                else:
+                    obstacle_ok = False
+
+                if obstacle_ok:
+                    # Objective: minimize ||x - y||_2  (SOCP)
+                    obj = cp.Minimize(cp.norm(x - y, 2))
+                    prob = cp.Problem(obj, constraints)
+
+                    solved = False
+                    for solver in (cp.ECOS, cp.SCS):
+                        try:
+                            prob.solve(solver=solver, warm_start=True, verbose=False)
+                            if prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE):
+                                d = float(prob.value)
+                                # Numerical safety
+                                if d < 0 and d > -1e-9:
+                                    d = 0.0
+                                if d >= 0:
+                                    min_dist = min(min_dist, d)
+                                solved = True
+                                break
+                        except Exception:
+                            continue
+
+                    if solved:
+                        continue  # go to next obstacle
+
+            # --- Fallback (non-exact) when CVXPY is unavailable or obstacle not supported ---
             try:
-                dist_to_obstacle = obstacle.signed_distance(center)
-            except (AttributeError, TypeError):
-                # Obstacle doesn't have signed_distance, use large value
-                dist_to_obstacle = float('inf')
-            
-            # Distance to inflation threshold
-            if dist_to_obstacle < float('inf'):
-                min_dist = min(min_dist, dist_to_obstacle)
-        
+                # This fallback is the *center* clearance only (not ellipsoid clearance).
+                # Kept as a last resort so the pipeline doesn't crash.
+                d_center = float(obstacle.signed_distance(center))
+                if np.isfinite(d_center):
+                    # Conservative: distance from ellipsoid to obstacle cannot exceed
+                    # center distance by more than the ellipsoid "radius"; but without
+                    # geometry we just keep the center distance as a heuristic.
+                    min_dist = min(min_dist, d_center)
+            except Exception:
+                pass
+
         return min_dist
+
     
     def _in_collision(self, 
                      point: np.ndarray,
