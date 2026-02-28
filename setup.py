@@ -34,6 +34,7 @@ setup(
             "pytest>=6.2.0",
             "pytest-cov>=2.12.0",
             "black>=21.7b0",
+            "isort>=5.9.0",
             "pylint>=2.9.0",
             "mypy>=0.910",
             "sphinx>=4.0.0",
@@ -48,11 +49,19 @@ setup(
             "tensorboard>=2.8.0",
             "matplotlib>=3.4.0",
         ],
+        "viz": [
+            "mcap>=1.1.0",
+            "mcap-protobuf-support>=0.5.0",
+            "foxglove-schemas-protobuf>=0.3.0",
+        ],
         "full": [
             "pybullet>=3.1.0",
             "scs>=3.0.0",
             "tensorboard>=2.8.0",
             "matplotlib>=3.4.0",
+            "mcap>=1.1.0",
+            "mcap-protobuf-support>=0.5.0",
+            "foxglove-schemas-protobuf>=0.3.0",
         ],
     },
     

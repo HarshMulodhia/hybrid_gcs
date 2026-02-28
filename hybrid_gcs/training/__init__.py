@@ -11,85 +11,68 @@ Modules:
     - experience_buffer: Trajectory storage and sampling
 """
 
-from .policy_network import (
-    PolicyNetwork,
-    PolicyNetworkConfig,
-    PolicyNetworkWithLSTM,
-    CNNEncoder
+from .curriculum_scheduler import (
+    CurriculumConfig,
+    CurriculumManager,
+    CurriculumType,
+    ExponentialCurriculum,
+    LinearCurriculum,
+    PerformanceCurriculum,
+    SigmoidCurriculum,
+    StepCurriculum,
 )
-
+from .experience_buffer import ExperienceBuffer, PrioritizedExperienceBuffer, TrajectoryBuffer
+from .policy_network import CNNEncoder, PolicyNetwork, PolicyNetworkConfig, PolicyNetworkWithLSTM
 from .ppo_trainer import (
-    PPOTrainer,
     PPOConfig,
+    PPOTrainer,
 )
-
 from .reward_shaper import (
-    RewardComposer,
-    RewardStrategy,
-    DistanceReward,
-    GoalReachReward,
     ActionPenalty,
     CollisionPenalty,
-    SmoothnessReward,
+    DistanceReward,
     EfficiencyReward,
+    GoalReachReward,
+    RewardComposer,
     RewardConfig,
-    create_reward_composer
-)
-
-from .curriculum_scheduler import (
-    CurriculumManager,
-    LinearCurriculum,
-    ExponentialCurriculum,
-    StepCurriculum,
-    SigmoidCurriculum,
-    PerformanceCurriculum,
-    CurriculumConfig,
-    CurriculumType
-)
-
-from .experience_buffer import (
-    ExperienceBuffer,
-    PrioritizedExperienceBuffer,
-    TrajectoryBuffer
+    RewardStrategy,
+    SmoothnessReward,
+    create_reward_composer,
 )
 
 __all__ = [
     # Policy Network
-    'PolicyNetwork',
-    'PolicyNetworkConfig',
-    'PolicyNetworkWithLSTM',
-    'CNNEncoder',
-    
+    "PolicyNetwork",
+    "PolicyNetworkConfig",
+    "PolicyNetworkWithLSTM",
+    "CNNEncoder",
     # PPO Trainer
-    'PPOTrainer',
-    'PPOConfig',
-    
+    "PPOTrainer",
+    "PPOConfig",
     # Reward Shaping
-    'RewardComposer',
-    'RewardStrategy',
-    'DistanceReward',
-    'GoalReachReward',
-    'ActionPenalty',
-    'CollisionPenalty',
-    'SmoothnessReward',
-    'EfficiencyReward',
-    'RewardConfig',
-    'create_reward_composer',
-    
+    "RewardComposer",
+    "RewardStrategy",
+    "DistanceReward",
+    "GoalReachReward",
+    "ActionPenalty",
+    "CollisionPenalty",
+    "SmoothnessReward",
+    "EfficiencyReward",
+    "RewardConfig",
+    "create_reward_composer",
     # Curriculum Learning
-    'CurriculumManager',
-    'LinearCurriculum',
-    'ExponentialCurriculum',
-    'StepCurriculum',
-    'SigmoidCurriculum',
-    'PerformanceCurriculum',
-    'CurriculumConfig',
-    'CurriculumType',
-    
+    "CurriculumManager",
+    "LinearCurriculum",
+    "ExponentialCurriculum",
+    "StepCurriculum",
+    "SigmoidCurriculum",
+    "PerformanceCurriculum",
+    "CurriculumConfig",
+    "CurriculumType",
     # Experience Buffer
-    'ExperienceBuffer',
-    'PrioritizedExperienceBuffer',
-    'TrajectoryBuffer'
+    "ExperienceBuffer",
+    "PrioritizedExperienceBuffer",
+    "TrajectoryBuffer",
 ]
 
-__version__ = '0.1.0'
+__version__ = "0.1.0"

@@ -111,3 +111,6 @@ Thumbs.db
 *.urdf.backup
 *.log
 output/
+
+# MCAP visualization recordings (generated at runtime)
+data/foxglove/*.mcap

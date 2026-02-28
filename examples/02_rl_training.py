@@ -48,7 +48,10 @@ class PolicyNetwork(nn.Module):
     """Policy network for continuous control."""
     
     def __init__(self, state_dim: int, action_dim: int,
-                hidden_sizes: List[int] = None):
+                hidden_sizes: List[int] = None,
+                clip_range: float = 0.2,
+                value_loss_coeff: float = 1.0,
+                entropy_coeff: float = 0.01):
         """
         Initialize policy network.
         
@@ -56,8 +59,15 @@ class PolicyNetwork(nn.Module):
             state_dim: State dimension
             action_dim: Action dimension
             hidden_sizes: Hidden layer sizes
+            clip_range: PPO clipping range
+            value_loss_coeff: Value loss coefficient
+            entropy_coeff: Entropy bonus coefficient
         """
         super().__init__()
+        
+        self.clip_range = clip_range
+        self.value_loss_coeff = value_loss_coeff
+        self.entropy_coeff = entropy_coeff
         
         if hidden_sizes is None:
             hidden_sizes = [64, 64]
@@ -209,8 +219,10 @@ class RobotEnvironment:
         # Clamp action
         action = np.clip(action, -1.0, 1.0)
         
-        # Update state (simple dynamics)
-        self.state = self.state + action * 0.1
+        # Update state (simple dynamics: action controls first action_dim dims)
+        delta = np.zeros(self.state_dim)
+        delta[:self.action_dim] = action
+        self.state = self.state + delta * 0.1
         self.step_count += 1
         
         # Compute reward
@@ -280,12 +292,17 @@ class ExperienceBuffer:
         Returns:
             Tuple of (returns, advantages)
         """
-        returns = np.zeros(len(self.rewards))
-        advantages = np.zeros(len(self.rewards))
+        T = len(self.rewards)
+        returns = np.zeros(T)
+        advantages = np.zeros(T)
         
         gae = 0
-        for t in reversed(range(len(self.rewards))):
-            delta = self.rewards[t] + gamma * self.values[t + 1] * (1 - self.dones[t]) - self.values[t]
+        for t in reversed(range(T)):
+            if t == T - 1:
+                next_value = 0.0
+            else:
+                next_value = self.values[t + 1]
+            delta = self.rewards[t] + gamma * next_value * (1 - self.dones[t]) - self.values[t]
             gae = delta + gamma * gae_lambda * (1 - self.dones[t]) * gae
             advantages[t] = gae
             returns[t] = gae + self.values[t]
