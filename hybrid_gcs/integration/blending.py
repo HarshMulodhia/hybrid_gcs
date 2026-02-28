@@ -232,3 +232,64 @@ class ConflictResolutionBlender(BlendingMethod):
             return gcs_action.copy()
 
         return projection
+
+
+class PriorityNetworkBlender(BlendingMethod):
+    """
+    Priority network-based blending for GCS and RL actions.
+
+    Uses a priority function to determine action source:
+    - p > high_threshold: Follow GCS action (planner has priority)
+    - p < low_threshold: Follow RL action (learner has priority)
+    - Otherwise: Blend with weight p
+
+    The priority function can be a learned neural network or a heuristic.
+
+    References:
+        Section 3.2 Strategy 3 of Hybrid-GCS Theory.
+    """
+
+    def __init__(
+        self,
+        priority_fn: Callable[..., float],
+        high_threshold: float = 0.7,
+        low_threshold: float = 0.3,
+    ):
+        """
+        Initialize priority network blender.
+
+        Args:
+            priority_fn: Callable that returns priority score in [0, 1].
+                         Called as priority_fn(gcs_action=..., rl_action=..., **kwargs).
+            high_threshold: Above this, use GCS action exclusively.
+            low_threshold: Below this, use RL action exclusively.
+        """
+        assert 0.0 <= low_threshold <= high_threshold <= 1.0, (
+            "Thresholds must satisfy 0 <= low <= high <= 1"
+        )
+        self.priority_fn = priority_fn
+        self.high_threshold = high_threshold
+        self.low_threshold = low_threshold
+
+    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+        """
+        Blend actions using priority network output.
+
+        Args:
+            gcs_action: Action from GCS planner
+            rl_action: Action from RL policy
+            **kwargs: Additional arguments passed to priority_fn.
+                      Typically includes 'state' for the priority network.
+
+        Returns:
+            Priority-weighted action
+        """
+        p = float(self.priority_fn(gcs_action=gcs_action, rl_action=rl_action, **kwargs))
+        p = np.clip(p, 0.0, 1.0)
+
+        if p > self.high_threshold:
+            return gcs_action.copy()
+        elif p < self.low_threshold:
+            return rl_action.copy()
+        else:
+            return p * gcs_action + (1.0 - p) * rl_action
