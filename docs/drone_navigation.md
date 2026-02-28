@@ -148,7 +148,7 @@ real time.  Use `--offscreen` for headless rendering.
 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
-| `learning_rate` | 1 × 10⁻⁴ | Lower learning rate stabilises multi-step navigation |
+| `learning_rate` | 1 × 10⁻⁴ | Lower learning rate stabilizes multi-step navigation |
 | `gamma` | 0.995 | Long horizon encourages strategic obstacle avoidance |
 | `gae_lambda` | 0.98 | Lower bias for multi-step credit assignment |
 | `clip_ratio` | 0.15 | Conservative policy updates to reduce collision instability |
