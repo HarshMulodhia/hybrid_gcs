@@ -81,9 +81,7 @@ class DualPathwayExtractor(nn.Module):
                     nn.init.orthogonal_(layer.weight, gain=np.sqrt(2))
                     nn.init.constant_(layer.bias, 0.0)
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass through both pathways.
 

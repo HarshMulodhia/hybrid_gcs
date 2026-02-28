@@ -95,9 +95,7 @@ class ManipulationEnv(BaseEnvironment):
         self._ee_pos = np.zeros(3, dtype=np.float64)
         self._ee_vel = np.zeros(3, dtype=np.float64)
         self._gripper_state = 0.0  # 0=open, 1=closed
-        self._obj_positions = np.zeros(
-            (config.num_objects, 3), dtype=np.float64
-        )
+        self._obj_positions = np.zeros((config.num_objects, 3), dtype=np.float64)
         self._target_pos = np.zeros(3, dtype=np.float64)
         self._grasped_idx: Optional[int] = None
 
@@ -128,9 +126,7 @@ class ManipulationEnv(BaseEnvironment):
         ws_center = (ws_lo + ws_hi) / 2.0
 
         # End-effector starts above workspace center
-        self._ee_pos = np.array(
-            [ws_center[0], ws_center[1], ws_hi[2]], dtype=np.float64
-        )
+        self._ee_pos = np.array([ws_center[0], ws_center[1], ws_hi[2]], dtype=np.float64)
 
         # Place objects on the table surface
         for i in range(cfg.num_objects):
@@ -211,9 +207,7 @@ class ManipulationEnv(BaseEnvironment):
             ]
         )
 
-    def _sample_target(
-        self, ws_lo: np.ndarray, ws_hi: np.ndarray
-    ) -> np.ndarray:
+    def _sample_target(self, ws_lo: np.ndarray, ws_hi: np.ndarray) -> np.ndarray:
         """
         Sample a target position appropriate for the current task.
 
@@ -307,9 +301,7 @@ class ManipulationEnv(BaseEnvironment):
         else:
             return self._eval_stack(info)
 
-    def _eval_reach(
-        self, info: Dict[str, Any]
-    ) -> Tuple[float, bool, Dict[str, Any]]:
+    def _eval_reach(self, info: Dict[str, Any]) -> Tuple[float, bool, Dict[str, Any]]:
         """Evaluate REACH task: move ee to target."""
         dist = np.linalg.norm(self._ee_pos - self._target_pos)
         reward = -dist
@@ -320,9 +312,7 @@ class ManipulationEnv(BaseEnvironment):
         info["success"] = done
         return reward, done, info
 
-    def _eval_pick(
-        self, info: Dict[str, Any]
-    ) -> Tuple[float, bool, Dict[str, Any]]:
+    def _eval_pick(self, info: Dict[str, Any]) -> Tuple[float, bool, Dict[str, Any]]:
         """Evaluate PICK task: reach + grasp + lift to target."""
         obj_pos = self._obj_positions[0]
         dist_ee_obj = np.linalg.norm(self._ee_pos - obj_pos)
@@ -341,9 +331,7 @@ class ManipulationEnv(BaseEnvironment):
         info["success"] = done
         return reward, done, info
 
-    def _eval_push(
-        self, info: Dict[str, Any]
-    ) -> Tuple[float, bool, Dict[str, Any]]:
+    def _eval_push(self, info: Dict[str, Any]) -> Tuple[float, bool, Dict[str, Any]]:
         """Evaluate PUSH task: push object to target on table."""
         obj_pos = self._obj_positions[0]
         dist_ee_obj = np.linalg.norm(self._ee_pos - obj_pos)
@@ -360,9 +348,7 @@ class ManipulationEnv(BaseEnvironment):
         info["success"] = done
         return reward, done, info
 
-    def _eval_stack(
-        self, info: Dict[str, Any]
-    ) -> Tuple[float, bool, Dict[str, Any]]:
+    def _eval_stack(self, info: Dict[str, Any]) -> Tuple[float, bool, Dict[str, Any]]:
         """Evaluate STACK task: pick first object and place on target."""
         obj_pos = self._obj_positions[0]
         dist_ee_obj = np.linalg.norm(self._ee_pos - obj_pos)
@@ -373,10 +359,7 @@ class ManipulationEnv(BaseEnvironment):
             reward += 1.0
 
         # Done when object is near stack target and released
-        placed = (
-            dist_obj_target < self._STACK_THRESHOLD
-            and self._grasped_idx is None
-        )
+        placed = dist_obj_target < self._STACK_THRESHOLD and self._grasped_idx is None
         done = placed
         if done:
             reward += 10.0

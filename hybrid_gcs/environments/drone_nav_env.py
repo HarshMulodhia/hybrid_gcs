@@ -223,9 +223,7 @@ class DroneNavEnv(BaseEnvironment):
 
             # Obstacle collision penalty
             for j in range(cfg.num_obstacles):
-                dist_to_obs = np.linalg.norm(
-                    self._positions[i] - self._obstacles[j]
-                )
+                dist_to_obs = np.linalg.norm(self._positions[i] - self._obstacles[j])
                 if dist_to_obs < cfg.obstacle_radius + cfg.collision_radius:
                     total_reward -= 50.0
                     collision = True
@@ -233,9 +231,7 @@ class DroneNavEnv(BaseEnvironment):
         # Inter-agent collision penalty
         for i in range(cfg.num_agents):
             for j in range(i + 1, cfg.num_agents):
-                inter_dist = np.linalg.norm(
-                    self._positions[i] - self._positions[j]
-                )
+                inter_dist = np.linalg.norm(self._positions[i] - self._positions[j])
                 if inter_dist < 2.0 * cfg.collision_radius:
                     total_reward -= 50.0
                     collision = True

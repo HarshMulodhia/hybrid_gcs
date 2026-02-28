@@ -108,9 +108,7 @@ class GraspingEnv(BaseEnvironment):
 
         # Initialize end-effector above the workspace center
         ws_center = (ws_lo + ws_hi) / 2.0
-        self._ee_pos = np.array(
-            [ws_center[0], ws_center[1], ws_hi[2]], dtype=np.float64
-        )
+        self._ee_pos = np.array([ws_center[0], ws_center[1], ws_hi[2]], dtype=np.float64)
 
         # Place object on the table surface (z = ws_lo[2])
         if self.grasping_config.object_position is not None:
@@ -153,11 +151,7 @@ class GraspingEnv(BaseEnvironment):
 
         # Gripper logic
         dist = np.linalg.norm(self._ee_pos - self._obj_pos)
-        if (
-            gripper_cmd > 0.5
-            and dist < self.grasping_config.grasp_threshold
-            and not self._grasped
-        ):
+        if gripper_cmd > 0.5 and dist < self.grasping_config.grasp_threshold and not self._grasped:
             self._grasped = True
 
         # If grasped, object follows end-effector
@@ -229,10 +223,7 @@ class GraspingEnv(BaseEnvironment):
             reward += self._obj_pos[2] * 2.0
 
         # Success bonus
-        if (
-            self._grasped
-            and self._obj_pos[2] >= self.grasping_config.lift_target
-        ):
+        if self._grasped and self._obj_pos[2] >= self.grasping_config.lift_target:
             reward += 10.0
 
         return reward

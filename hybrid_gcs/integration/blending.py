@@ -21,9 +21,7 @@ class BlendingMethod(ABC):
     """Base class for action blending methods."""
 
     @abstractmethod
-    def blend(
-        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
         """
         Blend GCS and RL actions.
 
@@ -73,9 +71,7 @@ class WeightedBlender(BlendingMethod):
         assert 0.0 <= value <= 1.0, "alpha must be in [0, 1]"
         self._alpha = value
 
-    def blend(
-        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
         """
         Blend actions via weighted linear combination.
 
@@ -116,9 +112,7 @@ class HierarchicalBlender(BlendingMethod):
         self.is_safe = is_safe
         self.transition_zone = transition_zone
 
-    def blend(
-        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
         """
         Blend actions hierarchically with safety priority.
 
@@ -173,9 +167,7 @@ class ConflictResolutionBlender(BlendingMethod):
         self.angle_threshold = angle_threshold
         self.magnitude_threshold = magnitude_threshold
 
-    def _detect_conflict(
-        self, gcs_action: np.ndarray, rl_action: np.ndarray
-    ) -> bool:
+    def _detect_conflict(self, gcs_action: np.ndarray, rl_action: np.ndarray) -> bool:
         """
         Detect conflict between GCS and RL actions.
 
@@ -207,9 +199,7 @@ class ConflictResolutionBlender(BlendingMethod):
 
         return False
 
-    def blend(
-        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
         """
         Blend actions with conflict resolution.
 

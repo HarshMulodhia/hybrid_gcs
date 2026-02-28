@@ -7,11 +7,8 @@ planning with Deep Reinforcement Learning for autonomous robotics.
 Modules:
     core: GCS core algorithms (ConfigSpace, Trajectory, IRIS, MICP)
     training: Deep RL training (PolicyNetwork, PPO, reward shaping)
-    integration: Hybrid GCS+RL integration
+    integration: Hybrid GCS+RL integration (blending, safety filter, features)
     environments: Task environments (grasping, navigation, manipulation)
-    evaluation: Performance metrics and analysis
-    utils: Utilities and configuration
-    cli: Command-line interfaces
 
 References:
     - Marcucci et al. (2023): Motion Planning around Obstacles
@@ -37,7 +34,37 @@ try:
 except ImportError as e:
     print(f"Warning: Could not import core module: {e}")
 
+# Import integration modules
+try:
+    from .integration import (
+        ConflictResolutionBlender,
+        DualPathwayExtractor,
+        FeatureExtractorConfig,
+        HierarchicalBlender,
+        SafetyFilter,
+        SafetyFilterConfig,
+        WeightedBlender,
+    )
+except ImportError as e:
+    print(f"Warning: Could not import integration module: {e}")
+
+# Import environment modules
+try:
+    from .environments import (
+        BaseEnvironment,
+        DroneNavConfig,
+        DroneNavEnv,
+        GraspingConfig,
+        GraspingEnv,
+        ManipulationConfig,
+        ManipulationEnv,
+        ManipulationTask,
+    )
+except ImportError as e:
+    print(f"Warning: Could not import environments module: {e}")
+
 __all__ = [
+    # Core
     "ConfigSpace",
     "Trajectory",
     "BezierTrajectory",
@@ -46,4 +73,21 @@ __all__ = [
     "SimpleBoxObstacle",
     "MICPSolver",
     "GCSGraph",
+    # Integration
+    "WeightedBlender",
+    "HierarchicalBlender",
+    "ConflictResolutionBlender",
+    "SafetyFilter",
+    "SafetyFilterConfig",
+    "DualPathwayExtractor",
+    "FeatureExtractorConfig",
+    # Environments
+    "BaseEnvironment",
+    "GraspingEnv",
+    "GraspingConfig",
+    "DroneNavEnv",
+    "DroneNavConfig",
+    "ManipulationEnv",
+    "ManipulationConfig",
+    "ManipulationTask",
 ]
