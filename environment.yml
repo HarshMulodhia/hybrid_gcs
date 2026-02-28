@@ -1,9 +1,9 @@
-name: hybrid-gcs
+name: hybrid_gcs
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python>=3.9
+  - python>=3.9,<3.14
   - numpy>=1.21.0
   - scipy>=1.7.0
   - conda-forge::pytorch>=1.10.0

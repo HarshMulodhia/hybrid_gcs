@@ -40,7 +40,7 @@ setup(
             "sphinx>=4.0.0",
         ],
         "sim": [
-            "pybullet>=3.1.0",
+            "pybullet>=3.1.0; python_version < '3.14'",
         ],
         "solvers": [
             "scs>=3.0.0",
@@ -55,7 +55,7 @@ setup(
             "foxglove-schemas-protobuf>=0.3.0",
         ],
         "full": [
-            "pybullet>=3.1.0",
+            "pybullet>=3.1.0; python_version < '3.14'",
             "scs>=3.0.0",
             "tensorboard>=2.8.0",
             "matplotlib>=3.4.0",
