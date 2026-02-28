@@ -5,12 +5,12 @@ Tests MCAP file creation, channel registration, and scene recording
 for Foxglove Studio visualization.
 """
 
-import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 from mcap.reader import make_reader
+from mcap_protobuf.reader import read_protobuf_messages
 
 from hybrid_gcs.core import (
     ConfigSpace,
@@ -196,18 +196,15 @@ class TestFoxgloveRecorder:
         with FoxgloveRecorder(output) as recorder:
             recorder.add_trajectory(simple_trajectory)
 
-        with open(output, "rb") as f:
-            reader = make_reader(f)
-            for schema, channel, message in reader.iter_messages(topics=["/trajectory"]):
-                data = json.loads(message.data)
-                assert "entities" in data
-                # Should have trajectory line + start marker + goal marker
-                assert len(data["entities"]) == 3
-                # First entity is the trajectory line
-                traj_entity = data["entities"][0]
-                assert traj_entity["id"] == "trajectory"
-                assert len(traj_entity["lines"]) == 1
-                assert len(traj_entity["lines"][0]["points"]) == 50
+        msgs = [m for m in read_protobuf_messages(output) if m.topic == "/trajectory"]
+        assert len(msgs) == 1
+        scene = msgs[0].proto_msg
+        # Should have trajectory line + start marker + goal marker
+        assert len(scene.entities) == 3
+        traj_entity = scene.entities[0]
+        assert traj_entity.id == "trajectory"
+        assert len(traj_entity.lines) == 1
+        assert len(traj_entity.lines[0].points) == 50
 
     def test_custom_topic_names(self, tmp_path, simple_trajectory):
         """Test recording with custom topic names."""
@@ -236,14 +233,12 @@ class TestFoxgloveRecorder:
         with FoxgloveRecorder(output) as recorder:
             recorder.add_trajectory(traj)
 
-        with open(output, "rb") as f:
-            reader = make_reader(f)
-            for schema, channel, message in reader.iter_messages(topics=["/trajectory"]):
-                data = json.loads(message.data)
-                points = data["entities"][0]["lines"][0]["points"]
-                # Verify z-coordinates are preserved (not zeroed)
-                has_nonzero_z = any(p["z"] > 0.01 for p in points)
-                assert has_nonzero_z
+        msgs = [m for m in read_protobuf_messages(output) if m.topic == "/trajectory"]
+        assert len(msgs) == 1
+        points = msgs[0].proto_msg.entities[0].lines[0].points
+        # Verify z-coordinates are preserved (not zeroed)
+        has_nonzero_z = any(p.z > 0.01 for p in points)
+        assert has_nonzero_z
 
 
 class TestRecordTrajectoryScene:
