@@ -35,7 +35,6 @@ from hybrid_gcs.training import (
     PPOTrainer,
 )
 
-
 # ---------------------------------------------------------------------------
 # Environment factories (mirrors train.py)
 # ---------------------------------------------------------------------------
@@ -210,9 +209,7 @@ def evaluate(args: argparse.Namespace) -> Dict:
         print(f"  task:       {args.task}")
     print("=" * 70)
 
-    metrics = run_evaluation(
-        env, policy, args.episodes, record_episodes=args.record
-    )
+    metrics = run_evaluation(env, policy, args.episodes, record_episodes=args.record)
 
     env.close()
 
@@ -265,12 +262,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--episodes", type=int, default=20, help="Number of evaluation episodes.")
     parser.add_argument("--max-steps", type=int, default=500, help="Max steps per episode.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
-    parser.add_argument(
-        "--output", type=str, default=None, help="Save metrics JSON to this path."
-    )
-    parser.add_argument(
-        "--record", action="store_true", help="Record per-step episode data."
-    )
+    parser.add_argument("--output", type=str, default=None, help="Save metrics JSON to this path.")
+    parser.add_argument("--record", action="store_true", help="Record per-step episode data.")
 
     # Domain-specific
     parser.add_argument("--dual-arm", action="store_true", help="Dual-arm (grasping).")
@@ -280,11 +273,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> Dict:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return evaluate(args)
+    evaluate(args)
+    return 0
 
 
 if __name__ == "__main__":

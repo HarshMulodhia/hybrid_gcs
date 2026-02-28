@@ -38,7 +38,6 @@ from hybrid_gcs.training import (
     PPOTrainer,
 )
 
-
 # ---------------------------------------------------------------------------
 # Domain-specific environment + reward configuration
 # ---------------------------------------------------------------------------
@@ -113,31 +112,34 @@ _PPO_DEFAULTS: Dict[str, Dict] = {
         gamma=0.99,
         gae_lambda=0.95,
         clip_ratio=0.2,
-        entropy_coef=0.01,
+        entropy_coef=0.02,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=64,
         num_steps=2048,
     ),
     "drone_nav": dict(
-        learning_rate=3e-4,
+        learning_rate=1e-4,
         gamma=0.995,
         gae_lambda=0.98,
-        clip_ratio=0.2,
+        clip_ratio=0.15,
         entropy_coef=0.005,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=128,
-        num_steps=2048,
+        num_steps=4096,
     ),
     "manipulation": dict(
         learning_rate=3e-4,
         gamma=0.99,
         gae_lambda=0.95,
         clip_ratio=0.2,
-        entropy_coef=0.01,
+        entropy_coef=0.015,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=64,
         num_steps=2048,
     ),
@@ -300,8 +302,10 @@ def train(args: argparse.Namespace) -> str:
 
             mr = metrics["mean_reward"]
             sr = metrics["success_rate"]
-            print(f"[Ep {ep:>4d}]  reward={mr:+.2f}  success={sr:.0%}  "
-                  f"policy_loss={stats['policy_loss']:.4f}")
+            print(
+                f"[Ep {ep:>4d}]  reward={mr:+.2f}  success={sr:.0%}  "
+                f"policy_loss={stats['policy_loss']:.4f}"
+            )
 
             # Save best
             if mr > best_reward:
@@ -312,6 +316,11 @@ def train(args: argparse.Namespace) -> str:
     # Always save latest
     latest_path = str(out_dir / "latest.pth")
     trainer.save_checkpoint(latest_path)
+
+    # Ensure best.pth always exists (copy latest if no evaluation ran)
+    best_path = str(out_dir / "best.pth")
+    if not Path(best_path).exists():
+        trainer.save_checkpoint(best_path)
 
     # Save training history
     history_path = out_dir / "training_history.json"
@@ -376,9 +385,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=500, help="Max steps per episode.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--lr", type=float, default=None, help="Override learning rate.")
-    parser.add_argument(
-        "--eval-interval", type=int, default=10, help="Evaluate every N episodes."
-    )
+    parser.add_argument("--eval-interval", type=int, default=10, help="Evaluate every N episodes.")
     parser.add_argument(
         "--output-dir",
         type=str,
@@ -402,11 +409,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> str:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return train(args)
+    train(args)
+    return 0
 
 
 if __name__ == "__main__":

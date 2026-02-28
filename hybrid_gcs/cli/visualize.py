@@ -19,6 +19,8 @@ from typing import Dict, List, Optional
 import numpy as np
 import torch
 
+# Re-use the evaluation loader
+from hybrid_gcs.cli.evaluate import ENV_FACTORY, load_policy
 from hybrid_gcs.environments import (
     DroneNavConfig,
     DroneNavEnv,
@@ -29,10 +31,6 @@ from hybrid_gcs.environments import (
     ManipulationTask,
 )
 from hybrid_gcs.training import PolicyNetwork, PolicyNetworkConfig
-
-# Re-use the evaluation loader
-from hybrid_gcs.cli.evaluate import ENV_FACTORY, load_policy
-
 
 # ---------------------------------------------------------------------------
 # Episode recording (backend-agnostic)
@@ -107,15 +105,11 @@ def _visualize_pybullet(env, policy: PolicyNetwork, args: argparse.Namespace) ->
     # Determine scene objects based on domain
     markers: Dict[str, int] = {}
     if args.env == "grasping":
-        table_id = p.loadURDF(
-            "table/table.urdf", basePosition=[0.55, 0.0, 0.0], useFixedBase=True
-        )
+        table_id = p.loadURDF("table/table.urdf", basePosition=[0.55, 0.0, 0.0], useFixedBase=True)
         markers["ee"] = p.loadURDF(
             "sphere2.urdf", globalScaling=0.03, basePosition=[0.55, 0.0, 0.6]
         )
-        markers["object"] = p.loadURDF(
-            "cube_small.urdf", basePosition=[0.55, 0.0, 0.02]
-        )
+        markers["object"] = p.loadURDF("cube_small.urdf", basePosition=[0.55, 0.0, 0.02])
     elif args.env == "drone_nav":
         for i in range(getattr(args, "num_agents", 1)):
             markers[f"drone_{i}"] = p.loadURDF(
@@ -126,9 +120,7 @@ def _visualize_pybullet(env, policy: PolicyNetwork, args: argparse.Namespace) ->
         markers["ee"] = p.loadURDF(
             "sphere2.urdf", globalScaling=0.03, basePosition=[0.55, 0.0, 0.6]
         )
-        markers["object"] = p.loadURDF(
-            "cube_small.urdf", basePosition=[0.55, 0.0, 0.02]
-        )
+        markers["object"] = p.loadURDF("cube_small.urdf", basePosition=[0.55, 0.0, 0.02])
 
     # Replay frames
     for frame in episode["frames"]:
@@ -136,12 +128,8 @@ def _visualize_pybullet(env, policy: PolicyNetwork, args: argparse.Namespace) ->
         if args.env == "grasping":
             ee_pos = obs[:3].tolist()
             obj_pos = obs[6:9].tolist()
-            p.resetBasePositionAndOrientation(
-                markers["ee"], ee_pos, [0, 0, 0, 1]
-            )
-            p.resetBasePositionAndOrientation(
-                markers["object"], obj_pos, [0, 0, 0, 1]
-            )
+            p.resetBasePositionAndOrientation(markers["ee"], ee_pos, [0, 0, 0, 1])
+            p.resetBasePositionAndOrientation(markers["object"], obj_pos, [0, 0, 0, 1])
         elif args.env == "drone_nav":
             n_agents = getattr(args, "num_agents", 1)
             per_agent = len(obs) // n_agents
@@ -149,18 +137,12 @@ def _visualize_pybullet(env, policy: PolicyNetwork, args: argparse.Namespace) ->
                 pos = obs[i * per_agent : i * per_agent + 3].tolist()
                 key = f"drone_{i}"
                 if key in markers:
-                    p.resetBasePositionAndOrientation(
-                        markers[key], pos, [0, 0, 0, 1]
-                    )
+                    p.resetBasePositionAndOrientation(markers[key], pos, [0, 0, 0, 1])
         else:  # manipulation
             ee_pos = obs[:3].tolist()
             obj_pos = obs[7:10].tolist()
-            p.resetBasePositionAndOrientation(
-                markers["ee"], ee_pos, [0, 0, 0, 1]
-            )
-            p.resetBasePositionAndOrientation(
-                markers["object"], obj_pos, [0, 0, 0, 1]
-            )
+            p.resetBasePositionAndOrientation(markers["ee"], ee_pos, [0, 0, 0, 1])
+            p.resetBasePositionAndOrientation(markers["object"], obj_pos, [0, 0, 0, 1])
 
         p.stepSimulation()
         import time
@@ -190,12 +172,17 @@ def _visualize_foxglove(env, policy: PolicyNetwork, args: argparse.Namespace) ->
     Uses the existing FoxgloveRecorder to write 3-D scene updates that
     can be opened directly in Foxglove Studio.
     """
+    from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
+    from foxglove_schemas_protobuf.SceneUpdate_pb2 import SceneUpdate
+    from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
+
     from hybrid_gcs.visualization.foxglove_recorder import (
         FoxgloveRecorder,
-        _make_color,
-        _make_pose,
-        _make_timestamp,
-        _make_vector3,
+        _color,
+        _dur,
+        _pose,
+        _ts,
+        _vec3,
     )
 
     episode = _record_episode(env, policy)
@@ -222,15 +209,9 @@ def _visualize_foxglove(env, policy: PolicyNetwork, args: argparse.Namespace) ->
             if args.env == "grasping":
                 ee_pos = obs[:3]
                 obj_pos = obs[6:9]
+                entities.append(_sphere_entity("ee", ee_pos, 0.04, (0.2, 0.6, 1.0, 0.9), sec, nsec))
                 entities.append(
-                    _sphere_entity(
-                        "ee", ee_pos, 0.04, (0.2, 0.6, 1.0, 0.9), sec, nsec
-                    )
-                )
-                entities.append(
-                    _sphere_entity(
-                        "object", obj_pos, 0.04, (1.0, 0.6, 0.1, 0.9), sec, nsec
-                    )
+                    _sphere_entity("object", obj_pos, 0.04, (1.0, 0.6, 0.1, 0.9), sec, nsec)
                 )
             elif args.env == "drone_nav":
                 n_agents = getattr(args, "num_agents", 1)
@@ -240,42 +221,25 @@ def _visualize_foxglove(env, policy: PolicyNetwork, args: argparse.Namespace) ->
                     goal = obs[i * per_agent + 6 : i * per_agent + 9]
                     hue = i / max(n_agents, 1)
                     color = (0.2 + 0.6 * hue, 0.8 - 0.5 * hue, 0.3, 0.9)
+                    entities.append(_sphere_entity(f"drone_{i}", pos, 0.15, color, sec, nsec))
                     entities.append(
-                        _sphere_entity(f"drone_{i}", pos, 0.15, color, sec, nsec)
-                    )
-                    entities.append(
-                        _sphere_entity(
-                            f"goal_{i}", goal, 0.1, (0.0, 1.0, 0.0, 0.4), sec, nsec
-                        )
+                        _sphere_entity(f"goal_{i}", goal, 0.1, (0.0, 1.0, 0.0, 0.4), sec, nsec)
                     )
             else:  # manipulation
                 ee_pos = obs[:3]
                 obj_pos = obs[7:10]
                 target_pos = obs[-3:]
+                entities.append(_sphere_entity("ee", ee_pos, 0.04, (0.2, 0.6, 1.0, 0.9), sec, nsec))
                 entities.append(
-                    _sphere_entity(
-                        "ee", ee_pos, 0.04, (0.2, 0.6, 1.0, 0.9), sec, nsec
-                    )
+                    _sphere_entity("object", obj_pos, 0.04, (1.0, 0.6, 0.1, 0.9), sec, nsec)
                 )
                 entities.append(
-                    _sphere_entity(
-                        "object", obj_pos, 0.04, (1.0, 0.6, 0.1, 0.9), sec, nsec
-                    )
-                )
-                entities.append(
-                    _sphere_entity(
-                        "target", target_pos, 0.04, (0.0, 1.0, 0.0, 0.5), sec, nsec
-                    )
+                    _sphere_entity("target", target_pos, 0.04, (0.0, 1.0, 0.0, 0.5), sec, nsec)
                 )
 
             if entities:
-                from hybrid_gcs.visualization.foxglove_recorder import _SCENE_UPDATE_SCHEMA
-
-                channel_id = recorder._get_channel(
-                    "/scene", "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-                )
-                msg = {"deletions": [], "entities": entities}
-                recorder._write_json(channel_id, msg, time_ns=time_ns)
+                msg = SceneUpdate(entities=entities)
+                recorder._write("/scene", msg, time_ns=time_ns)
 
     print(f"Foxglove MCAP written to {out_path}")
     print("Open in Foxglove Studio: https://studio.foxglove.dev")
@@ -289,38 +253,34 @@ def _sphere_entity(
     color: tuple,
     sec: int,
     nsec: int,
-) -> Dict:
-    """Build a Foxglove SceneEntity with a single sphere."""
+):
+    """Build a Foxglove SceneEntity protobuf with a single sphere."""
+    from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
+    from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
+
     from hybrid_gcs.visualization.foxglove_recorder import (
-        _make_color,
-        _make_pose,
-        _make_timestamp,
-        _make_vector3,
+        _color,
+        _dur,
+        _pose,
+        _ts,
+        _vec3,
     )
 
     pos = [float(position[i]) if i < len(position) else 0.0 for i in range(3)]
-    return {
-        "timestamp": _make_timestamp(sec, nsec),
-        "frame_id": "world",
-        "id": entity_id,
-        "lifetime": {"sec": 0, "nsec": 0},
-        "frame_locked": True,
-        "metadata": [],
-        "arrows": [],
-        "cubes": [],
-        "spheres": [
-            {
-                "pose": _make_pose(pos[0], pos[1], pos[2]),
-                "size": _make_vector3(size, size, size),
-                "color": _make_color(*color),
-            }
+    return SceneEntity(
+        timestamp=_ts(sec, nsec),
+        frame_id="world",
+        id=entity_id,
+        lifetime=_dur(0, 0),
+        frame_locked=True,
+        spheres=[
+            SpherePrimitive(
+                pose=_pose(pos[0], pos[1], pos[2]),
+                size=_vec3(size, size, size),
+                color=_color(*color),
+            ),
         ],
-        "cylinders": [],
-        "lines": [],
-        "triangles": [],
-        "texts": [],
-        "models": [],
-    }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -406,11 +366,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> str:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return visualize(args)
+    visualize(args)
+    return 0
 
 
 if __name__ == "__main__":

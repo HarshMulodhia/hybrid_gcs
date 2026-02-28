@@ -10,24 +10,26 @@ import numpy as np
 import pytest
 import torch
 
-from hybrid_gcs.cli.train import (
-    ENV_FACTORY,
-    build_parser as train_parser,
-    collect_rollout,
-    evaluate_policy,
-    train,
-)
+from hybrid_gcs.cli.evaluate import build_parser as eval_parser
 from hybrid_gcs.cli.evaluate import (
-    build_parser as eval_parser,
     evaluate,
     load_policy,
     run_evaluation,
 )
+from hybrid_gcs.cli.train import (
+    ENV_FACTORY,
+)
+from hybrid_gcs.cli.train import build_parser as train_parser
+from hybrid_gcs.cli.train import (
+    collect_rollout,
+    evaluate_policy,
+    train,
+)
 from hybrid_gcs.cli.visualize import (
     _record_episode,
     _sphere_entity,
-    build_parser as vis_parser,
 )
+from hybrid_gcs.cli.visualize import build_parser as vis_parser
 from hybrid_gcs.environments import (
     DroneNavConfig,
     DroneNavEnv,
@@ -39,7 +41,6 @@ from hybrid_gcs.environments import (
 )
 from hybrid_gcs.training import PolicyNetwork, PolicyNetworkConfig, PPOConfig, PPOTrainer
 from hybrid_gcs.visualization.pybullet_renderer import PyBulletRenderer
-
 
 # ======================================================================
 # Fixtures
@@ -64,9 +65,7 @@ def drone_env():
 
 @pytest.fixture
 def manip_env():
-    return ManipulationEnv(
-        ManipulationConfig(task=ManipulationTask.REACH, max_steps=50, seed=42)
-    )
+    return ManipulationEnv(ManipulationConfig(task=ManipulationTask.REACH, max_steps=50, seed=42))
 
 
 @pytest.fixture
@@ -195,12 +194,18 @@ class TestTrainCLI:
     def test_train_short_grasping(self, tmp_dir):
         args = train_parser().parse_args(
             [
-                "--env", "grasping",
-                "--episodes", "2",
-                "--max-steps", "50",
-                "--eval-interval", "1",
-                "--output-dir", str(tmp_dir),
-                "--seed", "42",
+                "--env",
+                "grasping",
+                "--episodes",
+                "2",
+                "--max-steps",
+                "50",
+                "--eval-interval",
+                "1",
+                "--output-dir",
+                str(tmp_dir),
+                "--seed",
+                "42",
             ]
         )
         path = train(args)
@@ -211,14 +216,22 @@ class TestTrainCLI:
     def test_train_short_drone_nav(self, tmp_dir):
         args = train_parser().parse_args(
             [
-                "--env", "drone_nav",
-                "--num-agents", "2",
-                "--num-obstacles", "3",
-                "--episodes", "2",
-                "--max-steps", "50",
-                "--eval-interval", "1",
-                "--output-dir", str(tmp_dir / "drone"),
-                "--seed", "42",
+                "--env",
+                "drone_nav",
+                "--num-agents",
+                "2",
+                "--num-obstacles",
+                "3",
+                "--episodes",
+                "2",
+                "--max-steps",
+                "50",
+                "--eval-interval",
+                "1",
+                "--output-dir",
+                str(tmp_dir / "drone"),
+                "--seed",
+                "42",
             ]
         )
         path = train(args)
@@ -229,13 +242,20 @@ class TestTrainCLI:
             out = tmp_dir / f"manip_{task}"
             args = train_parser().parse_args(
                 [
-                    "--env", "manipulation",
-                    "--task", task,
-                    "--episodes", "2",
-                    "--max-steps", "50",
-                    "--eval-interval", "1",
-                    "--output-dir", str(out),
-                    "--seed", "42",
+                    "--env",
+                    "manipulation",
+                    "--task",
+                    task,
+                    "--episodes",
+                    "2",
+                    "--max-steps",
+                    "50",
+                    "--eval-interval",
+                    "1",
+                    "--output-dir",
+                    str(out),
+                    "--seed",
+                    "42",
                 ]
             )
             path = train(args)
@@ -244,13 +264,19 @@ class TestTrainCLI:
     def test_train_dual_arm_grasping(self, tmp_dir):
         args = train_parser().parse_args(
             [
-                "--env", "grasping",
+                "--env",
+                "grasping",
                 "--dual-arm",
-                "--episodes", "2",
-                "--max-steps", "50",
-                "--eval-interval", "1",
-                "--output-dir", str(tmp_dir / "dual"),
-                "--seed", "42",
+                "--episodes",
+                "2",
+                "--max-steps",
+                "50",
+                "--eval-interval",
+                "1",
+                "--output-dir",
+                str(tmp_dir / "dual"),
+                "--seed",
+                "42",
             ]
         )
         path = train(args)
@@ -288,12 +314,18 @@ class TestEvaluateCLI:
         out_json = str(tmp_dir / "metrics.json")
         args = eval_parser().parse_args(
             [
-                "--env", "grasping",
-                "--checkpoint", ckpt_path,
-                "--episodes", "3",
-                "--max-steps", "50",
-                "--output", out_json,
-                "--seed", "42",
+                "--env",
+                "grasping",
+                "--checkpoint",
+                ckpt_path,
+                "--episodes",
+                "3",
+                "--max-steps",
+                "50",
+                "--output",
+                out_json,
+                "--seed",
+                "42",
             ]
         )
         metrics = evaluate(args)
@@ -329,20 +361,26 @@ class TestVisualizeCLI:
 
     def test_sphere_entity(self):
         ent = _sphere_entity("test", np.array([1.0, 2.0, 3.0]), 0.1, (1, 0, 0, 1), 0, 0)
-        assert ent["id"] == "test"
-        assert len(ent["spheres"]) == 1
+        assert ent.id == "test"
+        assert len(ent.spheres) == 1
 
     def test_foxglove_visualization(self, policy_and_checkpoint, tmp_dir):
         _, ckpt_path = policy_and_checkpoint
         out_mcap = str(tmp_dir / "test.mcap")
         args = vis_parser().parse_args(
             [
-                "--env", "grasping",
-                "--checkpoint", ckpt_path,
-                "--backend", "foxglove",
-                "--output", out_mcap,
-                "--max-steps", "50",
-                "--seed", "42",
+                "--env",
+                "grasping",
+                "--checkpoint",
+                ckpt_path,
+                "--backend",
+                "foxglove",
+                "--output",
+                out_mcap,
+                "--max-steps",
+                "50",
+                "--seed",
+                "42",
             ]
         )
         from hybrid_gcs.cli.visualize import visualize
