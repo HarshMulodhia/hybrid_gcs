@@ -14,18 +14,21 @@ from .blending import (
     BlendingMethod,
     ConflictResolutionBlender,
     HierarchicalBlender,
+    PriorityNetworkBlender,
     WeightedBlender,
 )
 from .feature_extractor import DualPathwayExtractor, FeatureExtractorConfig
-from .safety_filter import SafetyFilter, SafetyFilterConfig
+from .safety_filter import ControlBarrierFilter, SafetyFilter, SafetyFilterConfig
 
 __all__ = [
     "BlendingMethod",
     "WeightedBlender",
     "HierarchicalBlender",
     "ConflictResolutionBlender",
+    "PriorityNetworkBlender",
     "SafetyFilter",
     "SafetyFilterConfig",
+    "ControlBarrierFilter",
     "DualPathwayExtractor",
     "FeatureExtractorConfig",
 ]
