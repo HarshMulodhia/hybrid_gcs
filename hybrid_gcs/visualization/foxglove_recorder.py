@@ -19,72 +19,73 @@ Then open output.mcap in Foxglove Studio.
 
 import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-
 from mcap.writer import Writer
-
 
 # --- Foxglove JSON Schema Definitions ---
 
-_SCENE_UPDATE_SCHEMA = json.dumps({
-    "type": "object",
-    "properties": {
-        "deletions": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "timestamp": {"type": "object"},
-                    "type": {"type": "integer"},
-                    "id": {"type": "string"}
-                }
-            }
+_SCENE_UPDATE_SCHEMA = json.dumps(
+    {
+        "type": "object",
+        "properties": {
+            "deletions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "timestamp": {"type": "object"},
+                        "type": {"type": "integer"},
+                        "id": {"type": "string"},
+                    },
+                },
+            },
+            "entities": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "timestamp": {"type": "object"},
+                        "frame_id": {"type": "string"},
+                        "id": {"type": "string"},
+                        "lifetime": {"type": "object"},
+                        "frame_locked": {"type": "boolean"},
+                        "metadata": {"type": "array"},
+                        "arrows": {"type": "array"},
+                        "cubes": {"type": "array"},
+                        "spheres": {"type": "array"},
+                        "cylinders": {"type": "array"},
+                        "lines": {"type": "array"},
+                        "triangles": {"type": "array"},
+                        "texts": {"type": "array"},
+                        "models": {"type": "array"},
+                    },
+                },
+            },
         },
-        "entities": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "timestamp": {"type": "object"},
-                    "frame_id": {"type": "string"},
-                    "id": {"type": "string"},
-                    "lifetime": {"type": "object"},
-                    "frame_locked": {"type": "boolean"},
-                    "metadata": {"type": "array"},
-                    "arrows": {"type": "array"},
-                    "cubes": {"type": "array"},
-                    "spheres": {"type": "array"},
-                    "cylinders": {"type": "array"},
-                    "lines": {"type": "array"},
-                    "triangles": {"type": "array"},
-                    "texts": {"type": "array"},
-                    "models": {"type": "array"}
-                }
-            }
-        }
     }
-})
+)
 
-_FRAME_TRANSFORM_SCHEMA = json.dumps({
-    "type": "object",
-    "properties": {
-        "timestamp": {"type": "object"},
-        "parent_frame_id": {"type": "string"},
-        "child_frame_id": {"type": "string"},
-        "translation": {"type": "object"},
-        "rotation": {"type": "object"}
+_FRAME_TRANSFORM_SCHEMA = json.dumps(
+    {
+        "type": "object",
+        "properties": {
+            "timestamp": {"type": "object"},
+            "parent_frame_id": {"type": "string"},
+            "child_frame_id": {"type": "string"},
+            "translation": {"type": "object"},
+            "rotation": {"type": "object"},
+        },
     }
-})
+)
 
-_ROBOT_DESCRIPTION_SCHEMA = json.dumps({
-    "type": "object",
-    "properties": {
-        "model_data": {"type": "string"},
-        "model_encoding": {"type": "string"}
+_ROBOT_DESCRIPTION_SCHEMA = json.dumps(
+    {
+        "type": "object",
+        "properties": {"model_data": {"type": "string"}, "model_encoding": {"type": "string"}},
     }
-})
+)
 
 
 def _make_timestamp(sec: int = 0, nsec: int = 0) -> Dict:
@@ -98,13 +99,18 @@ def _make_color(r: float, g: float, b: float, a: float = 1.0) -> Dict:
 
 
 def _make_pose(
-    x: float = 0, y: float = 0, z: float = 0,
-    qx: float = 0, qy: float = 0, qz: float = 0, qw: float = 1
+    x: float = 0,
+    y: float = 0,
+    z: float = 0,
+    qx: float = 0,
+    qy: float = 0,
+    qz: float = 0,
+    qw: float = 1,
 ) -> Dict:
     """Create Foxglove pose (position + orientation)."""
     return {
         "position": {"x": x, "y": y, "z": z},
-        "orientation": {"x": qx, "y": qy, "z": qz, "w": qw}
+        "orientation": {"x": qx, "y": qy, "z": qz, "w": qw},
     }
 
 
@@ -225,40 +231,40 @@ class FoxgloveRecorder:
 
         urdf_content = urdf_file.read_text(encoding="utf-8")
 
-        channel_id = self._get_channel(
-            topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA)
 
         msg = {
             "deletions": [],
-            "entities": [{
-                "timestamp": _make_timestamp(0, 0),
-                "frame_id": "world",
-                "id": "robot_description",
-                "lifetime": {"sec": 0, "nsec": 0},
-                "frame_locked": True,
-                "metadata": [
-                    {"key": "urdf", "value": urdf_content},
-                    {"key": "model_encoding", "value": "urdf"},
-                ],
-                "arrows": [],
-                "cubes": [],
-                "spheres": [],
-                "cylinders": [],
-                "lines": [],
-                "triangles": [],
-                "texts": [
-                    {
-                        "pose": _make_pose(0, 0, 1.2),
-                        "billboard": True,
-                        "font_size": 14.0,
-                        "scale_invariant": True,
-                        "color": _make_color(1.0, 1.0, 1.0),
-                        "text": "UR5e Robot",
-                    }
-                ],
-                "models": [],
-            }],
+            "entities": [
+                {
+                    "timestamp": _make_timestamp(0, 0),
+                    "frame_id": "world",
+                    "id": "robot_description",
+                    "lifetime": {"sec": 0, "nsec": 0},
+                    "frame_locked": True,
+                    "metadata": [
+                        {"key": "urdf", "value": urdf_content},
+                        {"key": "model_encoding", "value": "urdf"},
+                    ],
+                    "arrows": [],
+                    "cubes": [],
+                    "spheres": [],
+                    "cylinders": [],
+                    "lines": [],
+                    "triangles": [],
+                    "texts": [
+                        {
+                            "pose": _make_pose(0, 0, 1.2),
+                            "billboard": True,
+                            "font_size": 14.0,
+                            "scale_invariant": True,
+                            "color": _make_color(1.0, 1.0, 1.0),
+                            "text": "UR5e Robot",
+                        }
+                    ],
+                    "models": [],
+                }
+            ],
         }
 
         self._write_json(channel_id, msg, time_ns=0)
@@ -280,31 +286,31 @@ class FoxgloveRecorder:
 
         urdf_content = urdf_file.read_text(encoding="utf-8")
 
-        channel_id = self._get_channel(
-            topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA)
 
         msg = {
             "deletions": [],
-            "entities": [{
-                "timestamp": _make_timestamp(0, 0),
-                "frame_id": "world",
-                "id": "environment",
-                "lifetime": {"sec": 0, "nsec": 0},
-                "frame_locked": True,
-                "metadata": [
-                    {"key": "urdf", "value": urdf_content},
-                    {"key": "model_encoding", "value": "urdf"},
-                ],
-                "arrows": [],
-                "cubes": [],
-                "spheres": [],
-                "cylinders": [],
-                "lines": [],
-                "triangles": [],
-                "texts": [],
-                "models": [],
-            }],
+            "entities": [
+                {
+                    "timestamp": _make_timestamp(0, 0),
+                    "frame_id": "world",
+                    "id": "environment",
+                    "lifetime": {"sec": 0, "nsec": 0},
+                    "frame_locked": True,
+                    "metadata": [
+                        {"key": "urdf", "value": urdf_content},
+                        {"key": "model_encoding", "value": "urdf"},
+                    ],
+                    "arrows": [],
+                    "cubes": [],
+                    "spheres": [],
+                    "cylinders": [],
+                    "lines": [],
+                    "triangles": [],
+                    "texts": [],
+                    "models": [],
+                }
+            ],
         }
 
         self._write_json(channel_id, msg, time_ns=0)
@@ -329,9 +335,7 @@ class FoxgloveRecorder:
             line_width: Width of trajectory line
             n_samples: Number of samples along trajectory
         """
-        channel_id = self._get_channel(
-            topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA)
 
         # Sample trajectory points
         t_start = trajectory.timestamps[0]
@@ -345,20 +349,20 @@ class FoxgloveRecorder:
             if len(pt) == 2:
                 line_points.append(_make_vector3(float(pt[0]), float(pt[1]), 0.01))
             else:
-                line_points.append(_make_vector3(
-                    float(pt[0]), float(pt[1]), float(pt[2])
-                ))
+                line_points.append(_make_vector3(float(pt[0]), float(pt[1]), float(pt[2])))
 
         # Build line colors (gradient from green to blue)
         line_colors = []
         for i in range(len(line_points)):
             t = i / max(1, len(line_points) - 1)
-            line_colors.append(_make_color(
-                color[0] * (1 - t) + 0.2 * t,
-                color[1] * (1 - t) + 0.3 * t,
-                color[2] * (1 - t) + 1.0 * t,
-                color[3],
-            ))
+            line_colors.append(
+                _make_color(
+                    color[0] * (1 - t) + 0.2 * t,
+                    color[1] * (1 - t) + 0.3 * t,
+                    color[2] * (1 - t) + 1.0 * t,
+                    color[3],
+                )
+            )
 
         time_ns = self._advance_time()
         sec = time_ns // 1_000_000_000
@@ -366,103 +370,117 @@ class FoxgloveRecorder:
 
         msg = {
             "deletions": [],
-            "entities": [{
-                "timestamp": _make_timestamp(sec, nsec),
-                "frame_id": frame_id,
-                "id": "trajectory",
-                "lifetime": {"sec": 0, "nsec": 0},
-                "frame_locked": True,
-                "metadata": [],
-                "arrows": [],
-                "cubes": [],
-                "spheres": [],
-                "cylinders": [],
-                "lines": [{
-                    "type": 0,  # LINE_STRIP
-                    "pose": _make_pose(),
-                    "thickness": line_width,
-                    "scale_invariant": False,
-                    "points": line_points,
-                    "color": _make_color(*color),
-                    "colors": line_colors,
-                    "indices": [],
-                }],
-                "triangles": [],
-                "texts": [],
-                "models": [],
-            }],
+            "entities": [
+                {
+                    "timestamp": _make_timestamp(sec, nsec),
+                    "frame_id": frame_id,
+                    "id": "trajectory",
+                    "lifetime": {"sec": 0, "nsec": 0},
+                    "frame_locked": True,
+                    "metadata": [],
+                    "arrows": [],
+                    "cubes": [],
+                    "spheres": [],
+                    "cylinders": [],
+                    "lines": [
+                        {
+                            "type": 0,  # LINE_STRIP
+                            "pose": _make_pose(),
+                            "thickness": line_width,
+                            "scale_invariant": False,
+                            "points": line_points,
+                            "color": _make_color(*color),
+                            "colors": line_colors,
+                            "indices": [],
+                        }
+                    ],
+                    "triangles": [],
+                    "texts": [],
+                    "models": [],
+                }
+            ],
         }
 
         # Add start/goal markers
         start_pt = points[0]
         goal_pt = points[-1]
 
-        start_pos = (
-            _make_vector3(float(start_pt[0]), float(start_pt[1]),
-                          float(start_pt[2]) if len(start_pt) > 2 else 0.01)
+        start_pos = _make_vector3(
+            float(start_pt[0]),
+            float(start_pt[1]),
+            float(start_pt[2]) if len(start_pt) > 2 else 0.01,
         )
-        goal_pos = (
-            _make_vector3(float(goal_pt[0]), float(goal_pt[1]),
-                          float(goal_pt[2]) if len(goal_pt) > 2 else 0.01)
+        goal_pos = _make_vector3(
+            float(goal_pt[0]), float(goal_pt[1]), float(goal_pt[2]) if len(goal_pt) > 2 else 0.01
         )
 
-        msg["entities"].append({
-            "timestamp": _make_timestamp(sec, nsec),
-            "frame_id": frame_id,
-            "id": "start_marker",
-            "lifetime": {"sec": 0, "nsec": 0},
-            "frame_locked": True,
-            "metadata": [],
-            "arrows": [],
-            "cubes": [],
-            "spheres": [{
-                "pose": _make_pose(start_pos["x"], start_pos["y"], start_pos["z"]),
-                "size": _make_vector3(0.08, 0.08, 0.08),
-                "color": _make_color(0.0, 1.0, 0.0, 0.9),
-            }],
-            "cylinders": [],
-            "lines": [],
-            "triangles": [],
-            "texts": [{
-                "pose": _make_pose(start_pos["x"], start_pos["y"],
-                                   start_pos["z"] + 0.15),
-                "billboard": True,
-                "font_size": 12.0,
-                "scale_invariant": True,
-                "color": _make_color(0.0, 1.0, 0.0),
-                "text": "START",
-            }],
-            "models": [],
-        })
+        msg["entities"].append(
+            {
+                "timestamp": _make_timestamp(sec, nsec),
+                "frame_id": frame_id,
+                "id": "start_marker",
+                "lifetime": {"sec": 0, "nsec": 0},
+                "frame_locked": True,
+                "metadata": [],
+                "arrows": [],
+                "cubes": [],
+                "spheres": [
+                    {
+                        "pose": _make_pose(start_pos["x"], start_pos["y"], start_pos["z"]),
+                        "size": _make_vector3(0.08, 0.08, 0.08),
+                        "color": _make_color(0.0, 1.0, 0.0, 0.9),
+                    }
+                ],
+                "cylinders": [],
+                "lines": [],
+                "triangles": [],
+                "texts": [
+                    {
+                        "pose": _make_pose(start_pos["x"], start_pos["y"], start_pos["z"] + 0.15),
+                        "billboard": True,
+                        "font_size": 12.0,
+                        "scale_invariant": True,
+                        "color": _make_color(0.0, 1.0, 0.0),
+                        "text": "START",
+                    }
+                ],
+                "models": [],
+            }
+        )
 
-        msg["entities"].append({
-            "timestamp": _make_timestamp(sec, nsec),
-            "frame_id": frame_id,
-            "id": "goal_marker",
-            "lifetime": {"sec": 0, "nsec": 0},
-            "frame_locked": True,
-            "metadata": [],
-            "arrows": [],
-            "cubes": [],
-            "spheres": [{
-                "pose": _make_pose(goal_pos["x"], goal_pos["y"], goal_pos["z"]),
-                "size": _make_vector3(0.08, 0.08, 0.08),
-                "color": _make_color(1.0, 0.0, 0.0, 0.9),
-            }],
-            "cylinders": [],
-            "lines": [],
-            "triangles": [],
-            "texts": [{
-                "pose": _make_pose(goal_pos["x"], goal_pos["y"],
-                                   goal_pos["z"] + 0.15),
-                "billboard": True,
-                "font_size": 12.0,
-                "scale_invariant": True,
-                "color": _make_color(1.0, 0.0, 0.0),
-                "text": "GOAL",
-            }],
-            "models": [],
-        })
+        msg["entities"].append(
+            {
+                "timestamp": _make_timestamp(sec, nsec),
+                "frame_id": frame_id,
+                "id": "goal_marker",
+                "lifetime": {"sec": 0, "nsec": 0},
+                "frame_locked": True,
+                "metadata": [],
+                "arrows": [],
+                "cubes": [],
+                "spheres": [
+                    {
+                        "pose": _make_pose(goal_pos["x"], goal_pos["y"], goal_pos["z"]),
+                        "size": _make_vector3(0.08, 0.08, 0.08),
+                        "color": _make_color(1.0, 0.0, 0.0, 0.9),
+                    }
+                ],
+                "cylinders": [],
+                "lines": [],
+                "triangles": [],
+                "texts": [
+                    {
+                        "pose": _make_pose(goal_pos["x"], goal_pos["y"], goal_pos["z"] + 0.15),
+                        "billboard": True,
+                        "font_size": 12.0,
+                        "scale_invariant": True,
+                        "color": _make_color(1.0, 0.0, 0.0),
+                        "text": "GOAL",
+                    }
+                ],
+                "models": [],
+            }
+        )
 
         self._write_json(channel_id, msg, time_ns=time_ns)
 
@@ -482,9 +500,7 @@ class FoxgloveRecorder:
             topic: ROS topic name
             color: RGBA color
         """
-        channel_id = self._get_channel(
-            topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA)
 
         cubes = []
         for i, obs in enumerate(obstacles):
@@ -502,11 +518,13 @@ class FoxgloveRecorder:
                 cx, cy, cz = float(center[0]), float(center[1]), float(center[2])
                 sx, sy, sz = float(size[0]), float(size[1]), float(size[2])
 
-            cubes.append({
-                "pose": _make_pose(cx, cy, cz),
-                "size": _make_vector3(sx, sy, sz),
-                "color": _make_color(*color),
-            })
+            cubes.append(
+                {
+                    "pose": _make_pose(cx, cy, cz),
+                    "size": _make_vector3(sx, sy, sz),
+                    "color": _make_color(*color),
+                }
+            )
 
         time_ns = self._advance_time()
         sec = time_ns // 1_000_000_000
@@ -514,22 +532,24 @@ class FoxgloveRecorder:
 
         msg = {
             "deletions": [],
-            "entities": [{
-                "timestamp": _make_timestamp(sec, nsec),
-                "frame_id": frame_id,
-                "id": "obstacles",
-                "lifetime": {"sec": 0, "nsec": 0},
-                "frame_locked": True,
-                "metadata": [],
-                "arrows": [],
-                "cubes": cubes,
-                "spheres": [],
-                "cylinders": [],
-                "lines": [],
-                "triangles": [],
-                "texts": [],
-                "models": [],
-            }],
+            "entities": [
+                {
+                    "timestamp": _make_timestamp(sec, nsec),
+                    "frame_id": frame_id,
+                    "id": "obstacles",
+                    "lifetime": {"sec": 0, "nsec": 0},
+                    "frame_locked": True,
+                    "metadata": [],
+                    "arrows": [],
+                    "cubes": cubes,
+                    "spheres": [],
+                    "cylinders": [],
+                    "lines": [],
+                    "triangles": [],
+                    "texts": [],
+                    "models": [],
+                }
+            ],
         }
 
         self._write_json(channel_id, msg, time_ns=time_ns)
@@ -553,9 +573,7 @@ class FoxgloveRecorder:
             topic: ROS topic name
             base_color: RGBA base color (varied per region)
         """
-        channel_id = self._get_channel(
-            topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA)
 
         spheres = []
         for i, region in enumerate(regions):
@@ -585,16 +603,18 @@ class FoxgloveRecorder:
                 cx, cy, cz = float(center[0]), float(center[1]), float(center[2])
 
             diam = avg_radius * 2
-            spheres.append({
-                "pose": _make_pose(cx, cy, cz),
-                "size": _make_vector3(diam, diam, diam),
-                "color": _make_color(
-                    float(np.clip(r, 0, 1)),
-                    float(np.clip(g, 0, 1)),
-                    float(np.clip(b, 0, 1)),
-                    base_color[3],
-                ),
-            })
+            spheres.append(
+                {
+                    "pose": _make_pose(cx, cy, cz),
+                    "size": _make_vector3(diam, diam, diam),
+                    "color": _make_color(
+                        float(np.clip(r, 0, 1)),
+                        float(np.clip(g, 0, 1)),
+                        float(np.clip(b, 0, 1)),
+                        base_color[3],
+                    ),
+                }
+            )
 
         time_ns = self._advance_time()
         sec = time_ns // 1_000_000_000
@@ -602,22 +622,24 @@ class FoxgloveRecorder:
 
         msg = {
             "deletions": [],
-            "entities": [{
-                "timestamp": _make_timestamp(sec, nsec),
-                "frame_id": frame_id,
-                "id": "convex_regions",
-                "lifetime": {"sec": 0, "nsec": 0},
-                "frame_locked": True,
-                "metadata": [],
-                "arrows": [],
-                "cubes": [],
-                "spheres": spheres,
-                "cylinders": [],
-                "lines": [],
-                "triangles": [],
-                "texts": [],
-                "models": [],
-            }],
+            "entities": [
+                {
+                    "timestamp": _make_timestamp(sec, nsec),
+                    "frame_id": frame_id,
+                    "id": "convex_regions",
+                    "lifetime": {"sec": 0, "nsec": 0},
+                    "frame_locked": True,
+                    "metadata": [],
+                    "arrows": [],
+                    "cubes": [],
+                    "spheres": spheres,
+                    "cylinders": [],
+                    "lines": [],
+                    "triangles": [],
+                    "texts": [],
+                    "models": [],
+                }
+            ],
         }
 
         self._write_json(channel_id, msg, time_ns=time_ns)
@@ -640,17 +662,14 @@ class FoxgloveRecorder:
             rotation: (qx, qy, qz, qw)
             topic: Topic name
         """
-        channel_id = self._get_channel(
-            topic, "foxglove.FrameTransform", _FRAME_TRANSFORM_SCHEMA
-        )
+        channel_id = self._get_channel(topic, "foxglove.FrameTransform", _FRAME_TRANSFORM_SCHEMA)
 
         msg = {
             "timestamp": _make_timestamp(0, 0),
             "parent_frame_id": parent_frame,
             "child_frame_id": child_frame,
             "translation": _make_vector3(*translation),
-            "rotation": {"x": rotation[0], "y": rotation[1],
-                         "z": rotation[2], "w": rotation[3]},
+            "rotation": {"x": rotation[0], "y": rotation[1], "z": rotation[2], "w": rotation[3]},
         }
 
         self._write_json(channel_id, msg, time_ns=0)

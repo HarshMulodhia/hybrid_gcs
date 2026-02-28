@@ -5,22 +5,22 @@ Tests MCAP file creation, channel registration, and scene recording
 for Foxglove Studio visualization.
 """
 
-import pytest
 import json
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pytest
 from mcap.reader import make_reader
 
 from hybrid_gcs.core import (
     ConfigSpace,
-    Trajectory,
-    IRISDecomposer,
-    SimpleBoxObstacle,
-    MICPSolver,
     GCSGraph,
+    IRISDecomposer,
+    MICPSolver,
+    SimpleBoxObstacle,
+    Trajectory,
 )
 from hybrid_gcs.visualization import FoxgloveRecorder, record_trajectory_scene
-
 
 # Path to test models
 _PKG_ROOT = Path(__file__).parent.parent.parent
@@ -31,12 +31,14 @@ _ENV_URDF = _PKG_ROOT / "data" / "models" / "environment" / "tabletop.urdf"
 @pytest.fixture
 def simple_trajectory():
     """Create a simple 2D trajectory."""
-    waypoints = np.array([
-        [0.0, 0.0],
-        [3.0, 4.0],
-        [6.0, 2.0],
-        [10.0, 10.0],
-    ])
+    waypoints = np.array(
+        [
+            [0.0, 0.0],
+            [3.0, 4.0],
+            [6.0, 2.0],
+            [10.0, 10.0],
+        ]
+    )
     return Trajectory(waypoints)
 
 
@@ -169,8 +171,7 @@ class TestFoxgloveRecorder:
             with pytest.raises(FileNotFoundError):
                 recorder.add_robot_description("/nonexistent/robot.urdf")
 
-    def test_full_scene(self, tmp_path, simple_trajectory, simple_obstacles,
-                        simple_regions):
+    def test_full_scene(self, tmp_path, simple_trajectory, simple_obstacles, simple_regions):
         """Test recording a complete scene."""
         output = str(tmp_path / "full.mcap")
         with FoxgloveRecorder(output) as recorder:
@@ -197,9 +198,7 @@ class TestFoxgloveRecorder:
 
         with open(output, "rb") as f:
             reader = make_reader(f)
-            for schema, channel, message in reader.iter_messages(
-                topics=["/trajectory"]
-            ):
+            for schema, channel, message in reader.iter_messages(topics=["/trajectory"]):
                 data = json.loads(message.data)
                 assert "entities" in data
                 # Should have trajectory line + start marker + goal marker
@@ -214,9 +213,7 @@ class TestFoxgloveRecorder:
         """Test recording with custom topic names."""
         output = str(tmp_path / "custom.mcap")
         with FoxgloveRecorder(output) as recorder:
-            recorder.add_trajectory(
-                simple_trajectory, topic="/my_custom_trajectory"
-            )
+            recorder.add_trajectory(simple_trajectory, topic="/my_custom_trajectory")
 
         with open(output, "rb") as f:
             reader = make_reader(f)
@@ -226,11 +223,13 @@ class TestFoxgloveRecorder:
 
     def test_3d_trajectory(self, tmp_path):
         """Test with a 3D trajectory."""
-        waypoints = np.array([
-            [0.0, 0.0, 0.0],
-            [1.0, 1.0, 1.0],
-            [2.0, 0.0, 2.0],
-        ])
+        waypoints = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [1.0, 1.0, 1.0],
+                [2.0, 0.0, 2.0],
+            ]
+        )
         traj = Trajectory(waypoints)
 
         output = str(tmp_path / "3d.mcap")
@@ -239,9 +238,7 @@ class TestFoxgloveRecorder:
 
         with open(output, "rb") as f:
             reader = make_reader(f)
-            for schema, channel, message in reader.iter_messages(
-                topics=["/trajectory"]
-            ):
+            for schema, channel, message in reader.iter_messages(topics=["/trajectory"]):
                 data = json.loads(message.data)
                 points = data["entities"][0]["lines"][0]["points"]
                 # Verify z-coordinates are preserved (not zeroed)
@@ -262,9 +259,7 @@ class TestRecordTrajectoryScene:
     def test_with_obstacles(self, tmp_path, simple_trajectory, simple_obstacles):
         """Test with obstacles."""
         output = str(tmp_path / "scene.mcap")
-        record_trajectory_scene(
-            output, simple_trajectory, obstacles=simple_obstacles
-        )
+        record_trajectory_scene(output, simple_trajectory, obstacles=simple_obstacles)
 
         with open(output, "rb") as f:
             reader = make_reader(f)
@@ -276,9 +271,7 @@ class TestRecordTrajectoryScene:
     def test_with_regions(self, tmp_path, simple_trajectory, simple_regions):
         """Test with regions."""
         output = str(tmp_path / "scene.mcap")
-        record_trajectory_scene(
-            output, simple_trajectory, regions=simple_regions
-        )
+        record_trajectory_scene(output, simple_trajectory, regions=simple_regions)
 
         with open(output, "rb") as f:
             reader = make_reader(f)
@@ -292,9 +285,7 @@ class TestRecordTrajectoryScene:
             pytest.skip("UR5e URDF not found")
 
         output = str(tmp_path / "scene.mcap")
-        record_trajectory_scene(
-            output, simple_trajectory, robot_urdf=str(_UR5E_URDF)
-        )
+        record_trajectory_scene(output, simple_trajectory, robot_urdf=str(_UR5E_URDF))
 
         with open(output, "rb") as f:
             reader = make_reader(f)

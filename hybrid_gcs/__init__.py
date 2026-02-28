@@ -19,31 +19,31 @@ References:
     - Deits & Tedrake (2015): IRIS Decomposition
 """
 
-__version__ = '0.1.0'
-__author__ = 'Hybrid-GCS Contributors'
+__version__ = "0.1.0"
+__author__ = "Hybrid-GCS Contributors"
 
 # Import core modules
 try:
     from .core import (
-        ConfigSpace,
-        Trajectory,
         BezierTrajectory,
-        IRISDecomposer,
+        ConfigSpace,
         Ellipsoid,
-        SimpleBoxObstacle,
-        MICPSolver,
         GCSGraph,
+        IRISDecomposer,
+        MICPSolver,
+        SimpleBoxObstacle,
+        Trajectory,
     )
 except ImportError as e:
     print(f"Warning: Could not import core module: {e}")
 
 __all__ = [
-    'ConfigSpace',
-    'Trajectory',
-    'BezierTrajectory',
-    'IRISDecomposer',
-    'Ellipsoid',
-    'SimpleBoxObstacle',
-    'MICPSolver',
-    'GCSGraph',
+    "ConfigSpace",
+    "Trajectory",
+    "BezierTrajectory",
+    "IRISDecomposer",
+    "Ellipsoid",
+    "SimpleBoxObstacle",
+    "MICPSolver",
+    "GCSGraph",
 ]

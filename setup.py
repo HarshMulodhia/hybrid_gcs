@@ -34,6 +34,7 @@ setup(
             "pytest>=6.2.0",
             "pytest-cov>=2.12.0",
             "black>=21.7b0",
+            "isort>=5.9.0",
             "pylint>=2.9.0",
             "mypy>=0.910",
             "sphinx>=4.0.0",

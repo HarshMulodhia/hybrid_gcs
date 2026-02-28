@@ -4,11 +4,12 @@ Unit tests for MICP Solver module.
 Tests GCSGraph and MICPSolver.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from hybrid_gcs.core import ConfigSpace, Trajectory
-from hybrid_gcs.core.micp_solver import GCSGraph, MICPSolver
 from hybrid_gcs.core.iris_decomposer import Ellipsoid
+from hybrid_gcs.core.micp_solver import GCSGraph, MICPSolver
 
 
 class TestGCSGraph:

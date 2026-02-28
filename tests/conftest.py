@@ -4,8 +4,8 @@ Pytest configuration for Hybrid-GCS tests.
 Provides common fixtures and configuration for all test suites.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 
 def pytest_configure(config):

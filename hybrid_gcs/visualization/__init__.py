@@ -12,6 +12,6 @@ Modules:
 from .foxglove_recorder import FoxgloveRecorder, record_trajectory_scene
 
 __all__ = [
-    'FoxgloveRecorder',
-    'record_trajectory_scene',
+    "FoxgloveRecorder",
+    "record_trajectory_scene",
 ]

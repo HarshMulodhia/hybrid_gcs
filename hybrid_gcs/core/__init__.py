@@ -14,19 +14,19 @@ Modules:
 """
 
 from .config_space import ConfigSpace
-from .trajectory import Trajectory, BezierTrajectory
-from .iris_decomposer import IRISDecomposer, Ellipsoid, SimpleBoxObstacle
-from .micp_solver import MICPSolver, GCSGraph
+from .iris_decomposer import Ellipsoid, IRISDecomposer, SimpleBoxObstacle
+from .micp_solver import GCSGraph, MICPSolver
+from .trajectory import BezierTrajectory, Trajectory
 
 __all__ = [
-    'ConfigSpace',
-    'Trajectory',
-    'BezierTrajectory',
-    'IRISDecomposer',
-    'Ellipsoid',
-    'SimpleBoxObstacle',
-    'MICPSolver',
-    'GCSGraph',
+    "ConfigSpace",
+    "Trajectory",
+    "BezierTrajectory",
+    "IRISDecomposer",
+    "Ellipsoid",
+    "SimpleBoxObstacle",
+    "MICPSolver",
+    "GCSGraph",
 ]
 
-__version__ = '0.1.0'
+__version__ = "0.1.0"

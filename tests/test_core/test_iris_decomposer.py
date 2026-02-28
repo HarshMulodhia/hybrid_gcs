@@ -4,12 +4,13 @@ Unit tests for IRIS Decomposer module.
 Tests IRIS decomposition, Ellipsoid, and SimpleBoxObstacle.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from hybrid_gcs.core import ConfigSpace
 from hybrid_gcs.core.iris_decomposer import (
-    IRISDecomposer,
     Ellipsoid,
+    IRISDecomposer,
     SimpleBoxObstacle,
 )
 
@@ -168,11 +169,7 @@ class TestIRISDecomposer:
     def test_decompose_with_obstacles(self, config_space_2d):
         """Test decomposition with obstacles."""
         decomposer = IRISDecomposer(config_space_2d, max_iterations=5)
-        obstacles = [
-            SimpleBoxObstacle(
-                lower=np.array([4.0, 4.0]), upper=np.array([6.0, 6.0])
-            )
-        ]
+        obstacles = [SimpleBoxObstacle(lower=np.array([4.0, 4.0]), upper=np.array([6.0, 6.0]))]
         seeds = [np.array([1.0, 1.0]), np.array([8.0, 8.0])]
         regions = decomposer.decompose(seeds, obstacles)
         assert len(regions) >= 1
@@ -180,11 +177,7 @@ class TestIRISDecomposer:
     def test_seed_in_collision_skipped(self, config_space_2d):
         """Test that seeds inside obstacles are skipped."""
         decomposer = IRISDecomposer(config_space_2d, max_iterations=5)
-        obstacles = [
-            SimpleBoxObstacle(
-                lower=np.array([0.0, 0.0]), upper=np.array([10.0, 10.0])
-            )
-        ]
+        obstacles = [SimpleBoxObstacle(lower=np.array([0.0, 0.0]), upper=np.array([10.0, 10.0]))]
         seeds = [np.array([5.0, 5.0])]  # Inside obstacle
         regions = decomposer.decompose(seeds, obstacles)
         assert len(regions) == 0

@@ -4,17 +4,18 @@ Unit tests for Reward Shaper module.
 Tests reward strategies and composition.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from hybrid_gcs.training import (
-    RewardComposer,
-    DistanceReward,
-    GoalReachReward,
     ActionPenalty,
     CollisionPenalty,
-    SmoothnessReward,
+    DistanceReward,
     EfficiencyReward,
+    GoalReachReward,
+    RewardComposer,
     RewardConfig,
+    SmoothnessReward,
     create_reward_composer,
 )
 
@@ -156,9 +157,7 @@ class TestRewardComposer:
     def test_combined_reward(self):
         """Test combined reward computation with matching kwargs."""
         composer = RewardComposer()
-        composer.add_strategy(
-            DistanceReward(weight=1.0, scale=0.1), "distance"
-        )
+        composer.add_strategy(DistanceReward(weight=1.0, scale=0.1), "distance")
 
         # Only pass kwargs that the distance strategy accepts
         r = composer.compute_reward(
@@ -170,9 +169,7 @@ class TestRewardComposer:
     def test_reward_breakdown(self):
         """Test reward breakdown."""
         composer = RewardComposer()
-        composer.add_strategy(
-            CollisionPenalty(weight=1.0, penalty=5.0), "collision"
-        )
+        composer.add_strategy(CollisionPenalty(weight=1.0, penalty=5.0), "collision")
 
         breakdown = composer.compute_reward_breakdown(
             collision=False,
