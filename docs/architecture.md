@@ -22,6 +22,9 @@ Hybrid-GCS combines two complementary planning paradigms:
 │  Trajectory      │  Curriculum Scheduler    │
 │                  │  Experience Buffer       │
 ├──────────────────┴──────────────────────────┤
+│            Visualization (Foxglove)          │
+│  MCAP recorder → Foxglove Studio 3D view    │
+├─────────────────────────────────────────────┤
 │              Safety Filter                   │
 │  (collision checking, joint/torque limits)   │
 ├─────────────────────────────────────────────┤
@@ -71,6 +74,10 @@ policy_network.py
 
 reward_shaper.py
     └─► ppo_trainer.py (reward signal)
+
+foxglove_recorder.py
+    └─► Trajectory, SimpleBoxObstacle, Ellipsoid → MCAP file
+    └─► URDF models (local primitives) → Foxglove Studio
 ```
 
 ## Performance Targets

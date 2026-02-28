@@ -219,8 +219,10 @@ class RobotEnvironment:
         # Clamp action
         action = np.clip(action, -1.0, 1.0)
         
-        # Update state (simple dynamics)
-        self.state = self.state + action * 0.1
+        # Update state (simple dynamics: action controls first action_dim dims)
+        delta = np.zeros(self.state_dim)
+        delta[:self.action_dim] = action
+        self.state = self.state + delta * 0.1
         self.step_count += 1
         
         # Compute reward

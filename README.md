@@ -16,6 +16,7 @@ Hybrid-GCS integrates classical trajectory optimization via Graph of Convex Sets
 |--------|-------------|
 | **core** | GCS algorithms — ConfigSpace, Trajectory, IRIS decomposition, MICP solver |
 | **training** | Deep RL — PolicyNetwork (Actor-Critic), PPO trainer, reward shaping, curriculum learning |
+| **visualization** | Foxglove Studio MCAP recording for 3D scene visualization |
 | **integration** | Hybrid GCS + RL blending, action selection, safety filtering *(planned)* |
 | **environments** | Task environments — grasping, drone navigation, manipulation *(planned)* |
 | **evaluation** | Metrics, trajectory analysis, benchmarks *(planned)* |
@@ -42,6 +43,7 @@ pip install -e ".[full]"
 | `solvers` | SCS (free convex solver) |
 | `sim` | PyBullet physics simulation |
 | `rl` | TensorBoard, matplotlib |
+| `viz` | Foxglove MCAP recording (mcap, foxglove-schemas-protobuf) |
 | `full` | All of the above |
 
 ## Quick Start
@@ -109,6 +111,25 @@ stats = trainer.update(states, actions, rewards, values, dones, next_value=0.0)
 print(f"Policy loss: {stats['policy_loss']:.4f}")
 ```
 
+### 3. Foxglove Visualization
+
+```python
+from hybrid_gcs.visualization import FoxgloveRecorder, record_trajectory_scene
+
+# Record a full scene to MCAP
+with FoxgloveRecorder("scene.mcap") as recorder:
+    recorder.add_robot_description("data/models/ur5e/ur5e.urdf")
+    recorder.add_environment("data/models/environment/tabletop.urdf")
+    recorder.add_obstacles(obstacles)
+    recorder.add_convex_regions(regions)
+    recorder.add_trajectory(trajectory)
+
+# Or use the convenience function
+record_trajectory_scene("scene.mcap", trajectory, obstacles=obstacles)
+```
+
+Open the `.mcap` file in [Foxglove Studio](https://foxglove.dev/studio), add a 3D panel, and optionally import the layout from `data/foxglove/hybrid_gcs_layout.json`.
+
 ## Running Tests
 
 ```bash
@@ -129,6 +150,7 @@ python -m pytest tests/test_training/ -v
 |--------|-------------|
 | `examples/01_simple_navigation.py` | 2D GCS planning with IRIS decomposition |
 | `examples/02_rl_training.py` | RL policy training loop with PPO |
+| `examples/03_foxglove_visualization.py` | Foxglove MCAP scene recording |
 
 ```bash
 python examples/01_simple_navigation.py
@@ -144,12 +166,14 @@ hybrid_gcs/
 │   │   ├── trajectory.py    # Trajectory representations
 │   │   ├── iris_decomposer.py  # IRIS decomposition
 │   │   └── micp_solver.py   # MICP solver + GCSGraph
-│   └── training/            # Deep RL
-│       ├── policy_network.py     # Actor-Critic networks
-│       ├── ppo_trainer.py        # PPO algorithm
-│       ├── reward_shaper.py      # Reward composition
-│       ├── curriculum_scheduler.py  # Curriculum learning
-│       └── experience_buffer.py  # Replay memory
+│   ├── training/            # Deep RL
+│   │   ├── policy_network.py     # Actor-Critic networks
+│   │   ├── ppo_trainer.py        # PPO algorithm
+│   │   ├── reward_shaper.py      # Reward composition
+│   │   ├── curriculum_scheduler.py  # Curriculum learning
+│   │   └── experience_buffer.py  # Replay memory
+│   └── visualization/       # Foxglove Studio
+│       └── foxglove_recorder.py  # MCAP scene recording
 ├── tests/                   # Unit & integration tests
 ├── examples/                # Example scripts
 ├── docs/                    # Documentation

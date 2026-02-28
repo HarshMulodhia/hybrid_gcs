@@ -12,6 +12,11 @@ black>=21.7b0
 pylint>=2.9.0
 mypy>=0.910
 
+# Visualization (optional - Foxglove Studio)
+mcap>=1.1.0
+mcap-protobuf-support>=0.5.0
+foxglove-schemas-protobuf>=0.3.0
+
 # Simulation (optional)
 pybullet>=3.1.0
 

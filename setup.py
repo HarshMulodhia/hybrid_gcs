@@ -48,11 +48,19 @@ setup(
             "tensorboard>=2.8.0",
             "matplotlib>=3.4.0",
         ],
+        "viz": [
+            "mcap>=1.1.0",
+            "mcap-protobuf-support>=0.5.0",
+            "foxglove-schemas-protobuf>=0.3.0",
+        ],
         "full": [
             "pybullet>=3.1.0",
             "scs>=3.0.0",
             "tensorboard>=2.8.0",
             "matplotlib>=3.4.0",
+            "mcap>=1.1.0",
+            "mcap-protobuf-support>=0.5.0",
+            "foxglove-schemas-protobuf>=0.3.0",
         ],
     },
     
