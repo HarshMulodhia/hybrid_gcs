@@ -113,31 +113,34 @@ _PPO_DEFAULTS: Dict[str, Dict] = {
         gamma=0.99,
         gae_lambda=0.95,
         clip_ratio=0.2,
-        entropy_coef=0.01,
+        entropy_coef=0.02,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=64,
         num_steps=2048,
     ),
     "drone_nav": dict(
-        learning_rate=3e-4,
+        learning_rate=1e-4,
         gamma=0.995,
         gae_lambda=0.98,
-        clip_ratio=0.2,
+        clip_ratio=0.15,
         entropy_coef=0.005,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=128,
-        num_steps=2048,
+        num_steps=4096,
     ),
     "manipulation": dict(
         learning_rate=3e-4,
         gamma=0.99,
         gae_lambda=0.95,
         clip_ratio=0.2,
-        entropy_coef=0.01,
+        entropy_coef=0.015,
         value_coef=0.5,
-        epochs=4,
+        max_grad_norm=0.5,
+        epochs=10,
         batch_size=64,
         num_steps=2048,
     ),
@@ -313,6 +316,11 @@ def train(args: argparse.Namespace) -> str:
     latest_path = str(out_dir / "latest.pth")
     trainer.save_checkpoint(latest_path)
 
+    # Ensure best.pth always exists (copy latest if no evaluation ran)
+    best_path = str(out_dir / "best.pth")
+    if not Path(best_path).exists():
+        trainer.save_checkpoint(best_path)
+
     # Save training history
     history_path = out_dir / "training_history.json"
     with open(history_path, "w") as fh:
@@ -402,11 +410,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> str:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return train(args)
+    train(args)
+    return 0
 
 
 if __name__ == "__main__":

@@ -280,11 +280,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> Dict:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return evaluate(args)
+    evaluate(args)
+    return 0
 
 
 if __name__ == "__main__":

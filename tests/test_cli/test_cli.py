@@ -329,8 +329,8 @@ class TestVisualizeCLI:
 
     def test_sphere_entity(self):
         ent = _sphere_entity("test", np.array([1.0, 2.0, 3.0]), 0.1, (1, 0, 0, 1), 0, 0)
-        assert ent["id"] == "test"
-        assert len(ent["spheres"]) == 1
+        assert ent.id == "test"
+        assert len(ent.spheres) == 1
 
     def test_foxglove_visualization(self, policy_and_checkpoint, tmp_dir):
         _, ckpt_path = policy_and_checkpoint

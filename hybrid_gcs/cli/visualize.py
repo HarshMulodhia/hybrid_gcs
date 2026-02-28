@@ -192,11 +192,15 @@ def _visualize_foxglove(env, policy: PolicyNetwork, args: argparse.Namespace) ->
     """
     from hybrid_gcs.visualization.foxglove_recorder import (
         FoxgloveRecorder,
-        _make_color,
-        _make_pose,
-        _make_timestamp,
-        _make_vector3,
+        _color,
+        _dur,
+        _pose,
+        _ts,
+        _vec3,
     )
+    from foxglove_schemas_protobuf.SceneUpdate_pb2 import SceneUpdate
+    from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
+    from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
 
     episode = _record_episode(env, policy)
 
@@ -269,13 +273,8 @@ def _visualize_foxglove(env, policy: PolicyNetwork, args: argparse.Namespace) ->
                 )
 
             if entities:
-                from hybrid_gcs.visualization.foxglove_recorder import _SCENE_UPDATE_SCHEMA
-
-                channel_id = recorder._get_channel(
-                    "/scene", "foxglove.SceneUpdate", _SCENE_UPDATE_SCHEMA
-                )
-                msg = {"deletions": [], "entities": entities}
-                recorder._write_json(channel_id, msg, time_ns=time_ns)
+                msg = SceneUpdate(entities=entities)
+                recorder._write("/scene", msg, time_ns=time_ns)
 
     print(f"Foxglove MCAP written to {out_path}")
     print("Open in Foxglove Studio: https://studio.foxglove.dev")
@@ -289,38 +288,33 @@ def _sphere_entity(
     color: tuple,
     sec: int,
     nsec: int,
-) -> Dict:
-    """Build a Foxglove SceneEntity with a single sphere."""
+):
+    """Build a Foxglove SceneEntity protobuf with a single sphere."""
     from hybrid_gcs.visualization.foxglove_recorder import (
-        _make_color,
-        _make_pose,
-        _make_timestamp,
-        _make_vector3,
+        _color,
+        _dur,
+        _pose,
+        _ts,
+        _vec3,
     )
+    from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
+    from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
 
     pos = [float(position[i]) if i < len(position) else 0.0 for i in range(3)]
-    return {
-        "timestamp": _make_timestamp(sec, nsec),
-        "frame_id": "world",
-        "id": entity_id,
-        "lifetime": {"sec": 0, "nsec": 0},
-        "frame_locked": True,
-        "metadata": [],
-        "arrows": [],
-        "cubes": [],
-        "spheres": [
-            {
-                "pose": _make_pose(pos[0], pos[1], pos[2]),
-                "size": _make_vector3(size, size, size),
-                "color": _make_color(*color),
-            }
+    return SceneEntity(
+        timestamp=_ts(sec, nsec),
+        frame_id="world",
+        id=entity_id,
+        lifetime=_dur(0, 0),
+        frame_locked=True,
+        spheres=[
+            SpherePrimitive(
+                pose=_pose(pos[0], pos[1], pos[2]),
+                size=_vec3(size, size, size),
+                color=_color(*color),
+            ),
         ],
-        "cylinders": [],
-        "lines": [],
-        "triangles": [],
-        "texts": [],
-        "models": [],
-    }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -406,11 +400,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list = None) -> str:
+def main(argv: list = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    return visualize(args)
+    visualize(args)
+    return 0
 
 
 if __name__ == "__main__":
