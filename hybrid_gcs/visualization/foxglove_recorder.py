@@ -17,8 +17,6 @@ Usage:
 Then open output.mcap in Foxglove Studio.
 """
 
-import struct
-import time
 import json
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
