@@ -134,24 +134,18 @@ class MICPSolver:
 
                 self.mosek = mosek
             except ImportError:
-                raise ImportError(
-                    "Mosek not installed. Get academic license from mosek.com"
-                )
+                raise ImportError("Mosek not installed. Get academic license from mosek.com")
         elif self.solver_type == "gurobi":
             try:
                 import gurobipy
 
                 self.gurobi = gurobipy
             except ImportError:
-                raise ImportError(
-                    "Gurobi not installed. Install with: pip install gurobipy"
-                )
+                raise ImportError("Gurobi not installed. Install with: pip install gurobipy")
         else:
             raise ValueError(f"Unknown solver: {self.solver_type}")
 
-    def solve(
-        self, start: np.ndarray, goal: np.ndarray, **kwargs
-    ) -> Optional[Trajectory]:
+    def solve(self, start: np.ndarray, goal: np.ndarray, **kwargs) -> Optional[Trajectory]:
         """
         Solve for collision-free trajectory from start to goal.
 
@@ -212,9 +206,7 @@ class MICPSolver:
 
         return trajectory
 
-    def _build_problem(
-        self, start: np.ndarray, goal: np.ndarray, **kwargs
-    ) -> Dict[str, Any]:
+    def _build_problem(self, start: np.ndarray, goal: np.ndarray, **kwargs) -> Dict[str, Any]:
         """
         Build MICP problem formulation.
 
@@ -260,9 +252,7 @@ class MICPSolver:
         if not problem.get("use_relaxation", True) or n_regions < 2:
             # Fall back to direct interpolation for trivial cases
             n_samples = 10
-            samples = [
-                start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)
-            ]
+            samples = [start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)]
             return {
                 "trajectory": np.array(samples),
                 "feasible": True,
@@ -319,10 +309,7 @@ class MICPSolver:
             solver = self.scs.SCS(data, cone, max_iters=5000, verbose=False)
             sol = solver.solve()
 
-            if (
-                sol["info"]["status"] == "solved"
-                or sol["info"]["status"] == "solved_inaccurate"
-            ):
+            if sol["info"]["status"] == "solved" or sol["info"]["status"] == "solved_inaccurate":
                 x_sol = sol["x"]
 
                 # Extract relaxed binary variables
@@ -362,9 +349,7 @@ class MICPSolver:
 
         # Fallback: linear interpolation
         n_samples = 10
-        samples = [
-            start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)
-        ]
+        samples = [start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)]
         return {
             "trajectory": np.array(samples),
             "feasible": True,

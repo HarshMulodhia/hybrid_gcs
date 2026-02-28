@@ -24,12 +24,8 @@ class SafetyFilterConfig:
     velocity/acceleration limits, and obstacle geometry.
     """
 
-    position_bounds_lower: np.ndarray = field(
-        default_factory=lambda: np.array([-1.0, -1.0, -1.0])
-    )
-    position_bounds_upper: np.ndarray = field(
-        default_factory=lambda: np.array([1.0, 1.0, 1.0])
-    )
+    position_bounds_lower: np.ndarray = field(default_factory=lambda: np.array([-1.0, -1.0, -1.0]))
+    position_bounds_upper: np.ndarray = field(default_factory=lambda: np.array([1.0, 1.0, 1.0]))
     max_velocity: float = 1.0
     max_acceleration: float = 5.0
     collision_margin: float = 0.1
@@ -114,9 +110,7 @@ class SafetyFilter:
         if self.config.obstacle_positions is None or self.config.obstacle_radii is None:
             return True
 
-        for obs_pos, obs_radius in zip(
-            self.config.obstacle_positions, self.config.obstacle_radii
-        ):
+        for obs_pos, obs_radius in zip(self.config.obstacle_positions, self.config.obstacle_radii):
             dist = np.linalg.norm(position - obs_pos)
             if dist < obs_radius + self.config.collision_margin:
                 return False
@@ -164,9 +158,7 @@ class SafetyFilter:
 
         return True
 
-    def filter_action(
-        self, action: np.ndarray, current_state: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def filter_action(self, action: np.ndarray, current_state: np.ndarray, **kwargs) -> np.ndarray:
         """
         Project action to satisfy all safety constraints.
 
@@ -187,11 +179,7 @@ class SafetyFilter:
         dt = kwargs.get("dt", 0.01)
         dim = len(self.config.position_bounds_lower)
         position = current_state[:dim]
-        velocity = (
-            current_state[dim : 2 * dim]
-            if len(current_state) >= 2 * dim
-            else np.zeros(dim)
-        )
+        velocity = current_state[dim : 2 * dim] if len(current_state) >= 2 * dim else np.zeros(dim)
 
         safe_action = action.copy()
 
@@ -219,10 +207,7 @@ class SafetyFilter:
             safe_action = (new_velocity - velocity) / dt
 
         # 4. Push away from obstacles
-        if (
-            self.config.obstacle_positions is not None
-            and self.config.obstacle_radii is not None
-        ):
+        if self.config.obstacle_positions is not None and self.config.obstacle_radii is not None:
             for obs_pos, obs_radius in zip(
                 self.config.obstacle_positions, self.config.obstacle_radii
             ):
@@ -311,18 +296,14 @@ class ControlBarrierFilter:
             return np.array([])
 
         barriers = []
-        for obs_pos, obs_radius in zip(
-            self.config.obstacle_positions, self.config.obstacle_radii
-        ):
+        for obs_pos, obs_radius in zip(self.config.obstacle_positions, self.config.obstacle_radii):
             dist_sq = np.sum((position - obs_pos) ** 2)
             safe_dist = obs_radius + self.config.collision_margin
             h = safe_dist**2 - dist_sq
             barriers.append(h)
         return np.array(barriers)
 
-    def filter_action(
-        self, action: np.ndarray, current_state: np.ndarray, **kwargs
-    ) -> np.ndarray:
+    def filter_action(self, action: np.ndarray, current_state: np.ndarray, **kwargs) -> np.ndarray:
         """
         Project action to satisfy CBF constraints.
 
@@ -343,11 +324,7 @@ class ControlBarrierFilter:
         dt = kwargs.get("dt", 0.01)
         dim = len(self.config.position_bounds_lower)
         position = current_state[:dim]
-        velocity = (
-            current_state[dim : 2 * dim]
-            if len(current_state) >= 2 * dim
-            else np.zeros(dim)
-        )
+        velocity = current_state[dim : 2 * dim] if len(current_state) >= 2 * dim else np.zeros(dim)
 
         safe_action = action.copy()
 

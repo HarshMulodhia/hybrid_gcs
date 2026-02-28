@@ -82,23 +82,17 @@ class AttentionComm(nn.Module):
         values = self.value_proj(agent_features)  # [num_agents, comm_dim]
 
         # Reshape for multi-head attention: [num_heads, num_agents, head_dim]
-        queries = queries.view(num_agents, self.num_heads, self.head_dim).transpose(
-            0, 1
-        )
+        queries = queries.view(num_agents, self.num_heads, self.head_dim).transpose(0, 1)
         keys = keys.view(num_agents, self.num_heads, self.head_dim).transpose(0, 1)
         values = values.view(num_agents, self.num_heads, self.head_dim).transpose(0, 1)
 
         # Scaled dot-product attention: alpha_{ij} = softmax(Q_i . K_j / sqrt(d))
         scale = float(self.head_dim) ** 0.5
         attn_scores = torch.matmul(queries, keys.transpose(-2, -1)) / scale
-        attn_weights = torch.softmax(
-            attn_scores, dim=-1
-        )  # [num_heads, num_agents, num_agents]
+        attn_weights = torch.softmax(attn_scores, dim=-1)  # [num_heads, num_agents, num_agents]
 
         # Aggregate messages: m_i = sum_j alpha_{ij} V_j
-        messages = torch.matmul(
-            attn_weights, values
-        )  # [num_heads, num_agents, head_dim]
+        messages = torch.matmul(attn_weights, values)  # [num_heads, num_agents, head_dim]
 
         # Concatenate heads and project
         messages = messages.transpose(0, 1).contiguous().view(num_agents, self.comm_dim)
@@ -218,9 +212,7 @@ class MultiAgentPolicy(nn.Module):
 
         return action_means, values
 
-    def get_actions(
-        self, states: torch.Tensor, deterministic: bool = False
-    ) -> torch.Tensor:
+    def get_actions(self, states: torch.Tensor, deterministic: bool = False) -> torch.Tensor:
         """
         Get actions for all agents.
 
@@ -296,9 +288,7 @@ class CentralizedCritic(nn.Module):
         nn.init.orthogonal_(final_layer.weight, gain=1.0)
         nn.init.constant_(final_layer.bias, 0.0)
 
-    def forward(
-        self, all_states: torch.Tensor, all_actions: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, all_states: torch.Tensor, all_actions: torch.Tensor) -> torch.Tensor:
         """
         Compute Q-value from all agents' states and actions.
 

@@ -98,9 +98,7 @@ class TestConflictResolutionBlender:
 
     def test_no_conflict(self):
         """Test that RL action is used when no conflict."""
-        blender = ConflictResolutionBlender(
-            angle_threshold=np.pi / 4, magnitude_threshold=2.0
-        )
+        blender = ConflictResolutionBlender(angle_threshold=np.pi / 4, magnitude_threshold=2.0)
         gcs = np.array([1.0, 0.0])
         rl = np.array([1.1, 0.0])  # Same direction, similar magnitude
         result = blender.blend(gcs, rl)
@@ -108,9 +106,7 @@ class TestConflictResolutionBlender:
 
     def test_angle_conflict(self):
         """Test conflict detection on opposing actions."""
-        blender = ConflictResolutionBlender(
-            angle_threshold=np.pi / 4, magnitude_threshold=10.0
-        )
+        blender = ConflictResolutionBlender(angle_threshold=np.pi / 4, magnitude_threshold=10.0)
         gcs = np.array([1.0, 0.0])
         rl = np.array([0.0, 1.0])  # 90 degrees apart > pi/4
         result = blender.blend(gcs, rl)
@@ -119,9 +115,7 @@ class TestConflictResolutionBlender:
 
     def test_magnitude_conflict(self):
         """Test conflict detection on magnitude divergence."""
-        blender = ConflictResolutionBlender(
-            angle_threshold=np.pi, magnitude_threshold=1.5
-        )
+        blender = ConflictResolutionBlender(angle_threshold=np.pi, magnitude_threshold=1.5)
         gcs = np.array([1.0, 0.0])
         rl = np.array([3.0, 0.0])  # ratio 3.0 > 1.5
         result = blender.blend(gcs, rl)
@@ -231,9 +225,7 @@ class TestDualPathwayExtractor:
 
     def test_forward(self):
         """Test forward pass produces correct shapes."""
-        config = FeatureExtractorConfig(
-            input_dim=10, gcs_feature_dim=4, rl_feature_dim=16
-        )
+        config = FeatureExtractorConfig(input_dim=10, gcs_feature_dim=4, rl_feature_dim=16)
         extractor = DualPathwayExtractor(config)
         x = torch.randn(8, 10)
         gcs_feats, rl_feats = extractor(x)
@@ -258,9 +250,7 @@ class TestDualPathwayExtractor:
 
     def test_gradient_flow(self):
         """Test that gradients flow through both pathways."""
-        config = FeatureExtractorConfig(
-            input_dim=5, gcs_feature_dim=2, rl_feature_dim=8
-        )
+        config = FeatureExtractorConfig(input_dim=5, gcs_feature_dim=2, rl_feature_dim=8)
         extractor = DualPathwayExtractor(config)
         x = torch.randn(2, 5, requires_grad=True)
         gcs_feats, rl_feats = extractor(x)
