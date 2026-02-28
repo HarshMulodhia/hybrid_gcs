@@ -1,0 +1,62 @@
+{
+  "configById": {
+    "3D!panel-1": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 5.0,
+        "phi": 45,
+        "thetaOffset": -45,
+        "fovy": 45,
+        "near": 0.01,
+        "far": 100,
+        "target": [2, 2, 0],
+        "targetOffset": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1]
+      },
+      "followMode": "follow-none",
+      "scene": {
+        "backgroundColor": "#1a1a2e",
+        "enableStats": false,
+        "transforms": {
+          "showLabel": false,
+          "axisScale": 0.3
+        }
+      },
+      "topics": {
+        "/trajectory": {
+          "visible": true
+        },
+        "/obstacles": {
+          "visible": true
+        },
+        "/regions": {
+          "visible": true
+        },
+        "/robot_description": {
+          "visible": true
+        },
+        "/environment": {
+          "visible": true
+        },
+        "/tf": {
+          "visible": true
+        }
+      },
+      "publish": {
+        "type": "point",
+        "poseTopic": "/goal_pose"
+      }
+    },
+    "RawMessages!panel-2": {
+      "topicPath": "/trajectory"
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "layout": {
+    "first": "3D!panel-1",
+    "second": "RawMessages!panel-2",
+    "direction": "row",
+    "splitPercentage": 75
+  }
+}

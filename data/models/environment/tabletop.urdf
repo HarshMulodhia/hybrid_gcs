@@ -1,0 +1,168 @@
+<?xml version="1.0" ?>
+<!--
+  Tabletop Environment for Hybrid-GCS Visualization
+  
+  Includes: floor, table, and workspace boundaries.
+  Uses only primitive shapes for optimal Foxglove rendering.
+-->
+<robot name="environment">
+
+  <material name="floor_gray">
+    <color rgba="0.85 0.85 0.85 1.0"/>
+  </material>
+  <material name="table_wood">
+    <color rgba="0.72 0.53 0.35 1.0"/>
+  </material>
+  <material name="table_leg">
+    <color rgba="0.40 0.40 0.40 1.0"/>
+  </material>
+  <material name="wall_white">
+    <color rgba="0.95 0.95 0.95 0.3"/>
+  </material>
+
+  <!-- World root -->
+  <link name="world"/>
+
+  <!-- Floor -->
+  <link name="floor">
+    <visual>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+      <geometry>
+        <box size="3.0 3.0 0.01"/>
+      </geometry>
+      <material name="floor_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+      <geometry>
+        <box size="3.0 3.0 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_floor" type="fixed">
+    <parent link="world"/>
+    <child link="floor"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Table Top -->
+  <link name="table_top">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="1.2 0.8 0.04"/>
+      </geometry>
+      <material name="table_wood"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="1.2 0.8 0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="20.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1.08" ixy="0.0" ixz="0.0"
+               iyy="2.42" iyz="0.0"
+               izz="3.47"/>
+    </inertial>
+  </link>
+
+  <joint name="world_to_table_top" type="fixed">
+    <parent link="world"/>
+    <child link="table_top"/>
+    <origin xyz="0.5 0 0.74" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Table Legs (4 legs) -->
+  <link name="table_leg_fl">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+      <material name="table_leg"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="table_top_to_leg_fl" type="fixed">
+    <parent link="table_top"/>
+    <child link="table_leg_fl"/>
+    <origin xyz="-0.55 0.35 -0.38" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_leg_fr">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+      <material name="table_leg"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="table_top_to_leg_fr" type="fixed">
+    <parent link="table_top"/>
+    <child link="table_leg_fr"/>
+    <origin xyz="0.55 0.35 -0.38" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_leg_bl">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+      <material name="table_leg"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="table_top_to_leg_bl" type="fixed">
+    <parent link="table_top"/>
+    <child link="table_leg_bl"/>
+    <origin xyz="-0.55 -0.35 -0.38" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_leg_br">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+      <material name="table_leg"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.72"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="table_top_to_leg_br" type="fixed">
+    <parent link="table_top"/>
+    <child link="table_leg_br"/>
+    <origin xyz="0.55 -0.35 -0.38" rpy="0 0 0"/>
+  </joint>
+
+</robot>
