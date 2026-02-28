@@ -106,6 +106,52 @@ Foxglove rendering — no external mesh files required.
 
 ---
 
+## PyBulletRenderer
+
+```python
+from hybrid_gcs.visualization import PyBulletRenderer
+```
+
+Replays recorded episode trajectories in a PyBullet physics simulation
+with 3-D rendering.  Falls back to JSON trajectory export when PyBullet
+is not installed.
+
+### Constructor
+
+```python
+PyBulletRenderer(mode: str = "direct")
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `mode` | str | `"direct"` | `"gui"` for on-screen, `"direct"` for headless |
+
+### Methods
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `connect` | `() -> int` | Connect to PyBullet server; returns client ID |
+| `setup_scene` | `(env_name, num_agents=1)` | Populate scene with domain objects |
+| `replay` | `(frames, env_name, dt, num_agents)` | Step through recorded frames |
+| `close` | `()` | Disconnect from PyBullet |
+| `save_trajectory_json` | `(frames, path) -> str` | Static fallback: save JSON |
+
+### Context Manager
+
+```python
+with PyBulletRenderer(mode="gui") as renderer:
+    renderer.setup_scene("grasping")
+    renderer.replay(frames, env_name="grasping", dt=0.01)
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `available` | `bool` | `True` if PyBullet is importable |
+
+---
+
 ## Foxglove Studio Layout
 
 Import `data/foxglove/hybrid_gcs_layout.json` for an optimized panel
