@@ -134,18 +134,24 @@ class MICPSolver:
 
                 self.mosek = mosek
             except ImportError:
-                raise ImportError("Mosek not installed. Get academic license from mosek.com")
+                raise ImportError(
+                    "Mosek not installed. Get academic license from mosek.com"
+                )
         elif self.solver_type == "gurobi":
             try:
                 import gurobipy
 
                 self.gurobi = gurobipy
             except ImportError:
-                raise ImportError("Gurobi not installed. Install with: pip install gurobipy")
+                raise ImportError(
+                    "Gurobi not installed. Install with: pip install gurobipy"
+                )
         else:
             raise ValueError(f"Unknown solver: {self.solver_type}")
 
-    def solve(self, start: np.ndarray, goal: np.ndarray, **kwargs) -> Optional[Trajectory]:
+    def solve(
+        self, start: np.ndarray, goal: np.ndarray, **kwargs
+    ) -> Optional[Trajectory]:
         """
         Solve for collision-free trajectory from start to goal.
 
@@ -206,7 +212,9 @@ class MICPSolver:
 
         return trajectory
 
-    def _build_problem(self, start: np.ndarray, goal: np.ndarray, **kwargs) -> Dict[str, Any]:
+    def _build_problem(
+        self, start: np.ndarray, goal: np.ndarray, **kwargs
+    ) -> Dict[str, Any]:
         """
         Build MICP problem formulation.
 
@@ -326,9 +334,7 @@ class MICPSolver:
                 z_binary = (z_relaxed > 0.5).astype(float)
 
                 # Extract path from active vertices/edges
-                active_vertices = [
-                    i for i in range(n_regions) if y_binary[i] > 0.5
-                ]
+                active_vertices = [i for i in range(n_regions) if y_binary[i] > 0.5]
 
                 if len(active_vertices) < 2:
                     active_vertices = list(range(n_regions))
@@ -388,7 +394,11 @@ class MICPSolver:
                 [start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)]
             )
 
-            return {"trajectory": trajectory_waypoints, "feasible": True, "solver": "mosek"}
+            return {
+                "trajectory": trajectory_waypoints,
+                "feasible": True,
+                "solver": "mosek",
+            }
         except Exception as e:
             print(f"Mosek solver error: {e}")
             return None
@@ -416,7 +426,11 @@ class MICPSolver:
                 [start + (goal - start) * t / (n_samples - 1) for t in range(n_samples)]
             )
 
-            return {"trajectory": trajectory_waypoints, "feasible": True, "solver": "gurobi"}
+            return {
+                "trajectory": trajectory_waypoints,
+                "feasible": True,
+                "solver": "gurobi",
+            }
         except Exception as e:
             print(f"Gurobi solver error: {e}")
             return None

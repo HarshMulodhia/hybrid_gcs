@@ -21,7 +21,9 @@ class BlendingMethod(ABC):
     """Base class for action blending methods."""
 
     @abstractmethod
-    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+    def blend(
+        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
+    ) -> np.ndarray:
         """
         Blend GCS and RL actions.
 
@@ -71,7 +73,9 @@ class WeightedBlender(BlendingMethod):
         assert 0.0 <= value <= 1.0, "alpha must be in [0, 1]"
         self._alpha = value
 
-    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+    def blend(
+        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
+    ) -> np.ndarray:
         """
         Blend actions via weighted linear combination.
 
@@ -112,7 +116,9 @@ class HierarchicalBlender(BlendingMethod):
         self.is_safe = is_safe
         self.transition_zone = transition_zone
 
-    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+    def blend(
+        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
+    ) -> np.ndarray:
         """
         Blend actions hierarchically with safety priority.
 
@@ -199,7 +205,9 @@ class ConflictResolutionBlender(BlendingMethod):
 
         return False
 
-    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+    def blend(
+        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
+    ) -> np.ndarray:
         """
         Blend actions with conflict resolution.
 
@@ -264,14 +272,16 @@ class PriorityNetworkBlender(BlendingMethod):
             high_threshold: Above this, use GCS action exclusively.
             low_threshold: Below this, use RL action exclusively.
         """
-        assert 0.0 <= low_threshold <= high_threshold <= 1.0, (
-            "Thresholds must satisfy 0 <= low <= high <= 1"
-        )
+        assert (
+            0.0 <= low_threshold <= high_threshold <= 1.0
+        ), "Thresholds must satisfy 0 <= low <= high <= 1"
         self.priority_fn = priority_fn
         self.high_threshold = high_threshold
         self.low_threshold = low_threshold
 
-    def blend(self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs) -> np.ndarray:
+    def blend(
+        self, gcs_action: np.ndarray, rl_action: np.ndarray, **kwargs
+    ) -> np.ndarray:
         """
         Blend actions using priority network output.
 
@@ -284,7 +294,9 @@ class PriorityNetworkBlender(BlendingMethod):
         Returns:
             Priority-weighted action
         """
-        p = float(self.priority_fn(gcs_action=gcs_action, rl_action=rl_action, **kwargs))
+        p = float(
+            self.priority_fn(gcs_action=gcs_action, rl_action=rl_action, **kwargs)
+        )
         p = np.clip(p, 0.0, 1.0)
 
         if p > self.high_threshold:

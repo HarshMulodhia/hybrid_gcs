@@ -92,7 +92,9 @@ class SpaceTimeGCS:
         spatial_dim: Dimensionality of the spatial workspace.
     """
 
-    def __init__(self, num_regions: int, num_time_steps: int, spatial_dim: int = 3) -> None:
+    def __init__(
+        self, num_regions: int, num_time_steps: int, spatial_dim: int = 3
+    ) -> None:
         """
         Initialize the space-time GCS.
 
@@ -142,7 +144,9 @@ class SpaceTimeGCS:
                 self._adjacency[vertex.id] = []
 
         # Build undirected spatial neighbor lookup
-        spatial_neighbors: Dict[int, Set[int]] = {r: set() for r in range(self.num_regions)}
+        spatial_neighbors: Dict[int, Set[int]] = {
+            r: set() for r in range(self.num_regions)
+        }
         for r_i, r_j in adjacency:
             if 0 <= r_i < self.num_regions and 0 <= r_j < self.num_regions:
                 spatial_neighbors[r_i].add(r_j)
@@ -156,14 +160,18 @@ class SpaceTimeGCS:
                 # Spatial edges: move to adjacent region at same time
                 for neighbor in spatial_neighbors[r]:
                     target = (neighbor, t)
-                    edge = SpaceTimeEdge(source=source, target=target, edge_type="spatial")
+                    edge = SpaceTimeEdge(
+                        source=source, target=target, edge_type="spatial"
+                    )
                     self._edges.append(edge)
                     self._adjacency[source].append(target)
 
                 # Temporal edges: wait in same region at next time step
                 if t + 1 < self.num_time_steps:
                     target = (r, t + 1)
-                    edge = SpaceTimeEdge(source=source, target=target, edge_type="temporal")
+                    edge = SpaceTimeEdge(
+                        source=source, target=target, edge_type="temporal"
+                    )
                     self._edges.append(edge)
                     self._adjacency[source].append(target)
 
@@ -176,7 +184,9 @@ class SpaceTimeGCS:
                         self._edges.append(edge)
                         self._adjacency[source].append(target)
 
-    def add_agent_reservation(self, agent_id: int, region_id: int, time_step: int) -> None:
+    def add_agent_reservation(
+        self, agent_id: int, region_id: int, time_step: int
+    ) -> None:
         """
         Reserve a (region, time) slot for an agent.
 
