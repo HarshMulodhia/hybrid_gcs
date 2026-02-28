@@ -94,9 +94,7 @@ class PyBulletRenderer:
             self.markers["ee"] = p.loadURDF(
                 "sphere2.urdf", globalScaling=0.03, basePosition=[0.55, 0, 0.6]
             )
-            self.markers["object"] = p.loadURDF(
-                "cube_small.urdf", basePosition=[0.55, 0, 0.02]
-            )
+            self.markers["object"] = p.loadURDF("cube_small.urdf", basePosition=[0.55, 0, 0.02])
         elif env_name == "drone_nav":
             for i in range(num_agents):
                 self.markers[f"drone_{i}"] = p.loadURDF(

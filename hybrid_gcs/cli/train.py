@@ -38,7 +38,6 @@ from hybrid_gcs.training import (
     PPOTrainer,
 )
 
-
 # ---------------------------------------------------------------------------
 # Domain-specific environment + reward configuration
 # ---------------------------------------------------------------------------
@@ -303,8 +302,10 @@ def train(args: argparse.Namespace) -> str:
 
             mr = metrics["mean_reward"]
             sr = metrics["success_rate"]
-            print(f"[Ep {ep:>4d}]  reward={mr:+.2f}  success={sr:.0%}  "
-                  f"policy_loss={stats['policy_loss']:.4f}")
+            print(
+                f"[Ep {ep:>4d}]  reward={mr:+.2f}  success={sr:.0%}  "
+                f"policy_loss={stats['policy_loss']:.4f}"
+            )
 
             # Save best
             if mr > best_reward:
@@ -384,9 +385,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=500, help="Max steps per episode.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--lr", type=float, default=None, help="Override learning rate.")
-    parser.add_argument(
-        "--eval-interval", type=int, default=10, help="Evaluate every N episodes."
-    )
+    parser.add_argument("--eval-interval", type=int, default=10, help="Evaluate every N episodes.")
     parser.add_argument(
         "--output-dir",
         type=str,

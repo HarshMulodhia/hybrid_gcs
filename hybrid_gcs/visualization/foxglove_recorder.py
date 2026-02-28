@@ -22,32 +22,31 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import numpy as np
-from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.duration_pb2 import Duration
-from mcap_protobuf.writer import Writer as McapProtobufWriter
-
-from foxglove_schemas_protobuf.SceneUpdate_pb2 import SceneUpdate
-from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
-from foxglove_schemas_protobuf.SceneEntityDeletion_pb2 import SceneEntityDeletion
+from foxglove_schemas_protobuf.ArrowPrimitive_pb2 import ArrowPrimitive
+from foxglove_schemas_protobuf.Color_pb2 import Color
+from foxglove_schemas_protobuf.CubePrimitive_pb2 import CubePrimitive
+from foxglove_schemas_protobuf.CylinderPrimitive_pb2 import CylinderPrimitive
 from foxglove_schemas_protobuf.FrameTransform_pb2 import FrameTransform
 from foxglove_schemas_protobuf.KeyValuePair_pb2 import KeyValuePair
-from foxglove_schemas_protobuf.ArrowPrimitive_pb2 import ArrowPrimitive
-from foxglove_schemas_protobuf.CubePrimitive_pb2 import CubePrimitive
-from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
-from foxglove_schemas_protobuf.CylinderPrimitive_pb2 import CylinderPrimitive
 from foxglove_schemas_protobuf.LinePrimitive_pb2 import LinePrimitive
+from foxglove_schemas_protobuf.Point3_pb2 import Point3
+from foxglove_schemas_protobuf.Pose_pb2 import Pose
+from foxglove_schemas_protobuf.Quaternion_pb2 import Quaternion
+from foxglove_schemas_protobuf.SceneEntity_pb2 import SceneEntity
+from foxglove_schemas_protobuf.SceneEntityDeletion_pb2 import SceneEntityDeletion
+from foxglove_schemas_protobuf.SceneUpdate_pb2 import SceneUpdate
+from foxglove_schemas_protobuf.SpherePrimitive_pb2 import SpherePrimitive
 from foxglove_schemas_protobuf.TextPrimitive_pb2 import TextPrimitive
 from foxglove_schemas_protobuf.TriangleListPrimitive_pb2 import TriangleListPrimitive
-from foxglove_schemas_protobuf.Color_pb2 import Color
-from foxglove_schemas_protobuf.Pose_pb2 import Pose
 from foxglove_schemas_protobuf.Vector3_pb2 import Vector3
-from foxglove_schemas_protobuf.Quaternion_pb2 import Quaternion
-from foxglove_schemas_protobuf.Point3_pb2 import Point3
-
+from google.protobuf.duration_pb2 import Duration
+from google.protobuf.timestamp_pb2 import Timestamp
+from mcap_protobuf.writer import Writer as McapProtobufWriter
 
 # ---------------------------------------------------------------------------
 # Helper builders
 # ---------------------------------------------------------------------------
+
 
 def _ts(sec: int = 0, nsec: int = 0) -> Timestamp:
     """Create a protobuf Timestamp."""
@@ -82,8 +81,13 @@ def _quat(x: float = 0, y: float = 0, z: float = 0, w: float = 1) -> Quaternion:
 
 
 def _pose(
-    x: float = 0, y: float = 0, z: float = 0,
-    qx: float = 0, qy: float = 0, qz: float = 0, qw: float = 1,
+    x: float = 0,
+    y: float = 0,
+    z: float = 0,
+    qx: float = 0,
+    qy: float = 0,
+    qz: float = 0,
+    qw: float = 1,
 ) -> Pose:
     return Pose(
         position=_vec3(x, y, z),
@@ -94,6 +98,7 @@ def _pose(
 # ---------------------------------------------------------------------------
 # Recorder
 # ---------------------------------------------------------------------------
+
 
 class FoxgloveRecorder:
     """
@@ -550,6 +555,7 @@ class FoxgloveRecorder:
 # ---------------------------------------------------------------------------
 # Convenience function
 # ---------------------------------------------------------------------------
+
 
 def record_trajectory_scene(
     output_path: str,
