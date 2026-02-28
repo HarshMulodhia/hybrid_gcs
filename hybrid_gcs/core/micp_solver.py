@@ -52,6 +52,7 @@ class GCSGraph:
         while len(self.vertices) <= vertex_id:
             self.vertices.append(None)
         
+        self.vertices[vertex_id] = vertex_id
         self.vertex_data[vertex_id] = kwargs
     
     def add_edge(self, src: int, dst: int, **kwargs):

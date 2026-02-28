@@ -449,16 +449,16 @@ class SimpleBoxObstacle:
         """
         point = np.asarray(point, dtype=np.float64)
         
-        # Distance along each dimension
-        dist_lower = point - self.lower
-        dist_upper = self.upper - point
+        # Per-axis signed distance: positive means outside on that axis
+        d = np.maximum(self.lower - point, point - self.upper)
         
-        # Minimum distance to boundary in each dimension
-        min_dist_per_dim = np.minimum(dist_lower, dist_upper)
+        # Clamp to get only the outside components
+        outside = np.maximum(d, 0.0)
+        outside_dist = float(np.linalg.norm(outside))
         
-        if np.any(min_dist_per_dim < 0):
-            # Inside box
-            return float(np.max(min_dist_per_dim))
+        if outside_dist > 0:
+            # Point is outside the box
+            return outside_dist
         else:
-            # Outside box
-            return float(np.linalg.norm(np.maximum(0, -min_dist_per_dim)))
+            # Point is inside; return max(d) which is the least-negative value
+            return float(np.max(d))

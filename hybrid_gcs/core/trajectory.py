@@ -187,8 +187,10 @@ class Trajectory:
         Returns:
             Reversed Trajectory object
         """
-        return Trajectory(self.waypoints[::-1], 
-                         self.timestamps[::-1])
+        reversed_waypoints = self.waypoints[::-1]
+        # Re-map timestamps so they remain increasing
+        reversed_timestamps = self.timestamps[-1] - self.timestamps[::-1] + self.timestamps[0]
+        return Trajectory(reversed_waypoints, reversed_timestamps)
     
     def get_waypoints(self) -> np.ndarray:
         """Get waypoints array [n, dim]."""
