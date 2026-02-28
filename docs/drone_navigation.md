@@ -69,7 +69,14 @@ reward -= 50.0     if inter-agent collision  # 2 × drone collision radius
 The episode terminates when **all** agents reach their goals (success)
 or **any** collision occurs (failure), or `max_steps` is reached.
 
-## Training
+## Pipeline
+
+The drone navigation task follows a three-stage pipeline:
+**Train → Evaluate → Visualize**.
+
+### 1. Train
+
+Run PPO training to learn an obstacle-avoidance navigation policy.
 
 ```bash
 # Single-agent
@@ -79,28 +86,22 @@ hybrid-gcs-train --env drone_nav --episodes 200 --seed 42
 hybrid-gcs-train --env drone_nav --num-agents 3 --num-obstacles 8 --episodes 300
 ```
 
-### PPO Hyperparameters
+Outputs saved to `checkpoints/train/` (configurable via `--output-dir`):
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| `learning_rate` | 3 × 10⁻⁴ | Standard PPO default |
-| `gamma` | 0.995 | Long horizon encourages strategic obstacle avoidance |
-| `gae_lambda` | 0.98 | Lower bias for multi-step credit assignment |
-| `clip_ratio` | 0.2 | Conservative policy updates |
-| `entropy_coef` | 0.005 | Modest exploration (collision avoidance needs precision) |
-| `epochs` | 4 | Multiple passes per rollout |
-| `batch_size` | 128 | Larger batches stabilize multi-agent gradients |
-| `num_steps` | 2048 | Rollout length |
+| File | Description |
+|------|-------------|
+| `best.pth` | Checkpoint with the highest mean evaluation reward |
+| `latest.pth` | Checkpoint from the final training episode |
+| `training_history.json` | Per-evaluation-interval metrics |
+| `train_config.json` | Full configuration for reproducibility |
 
-### Multi-Agent Training Notes
+**Note:** `best.pth` is always created — if no evaluation runs (e.g.
+`--episodes` < `--eval-interval`), the latest checkpoint is saved as
+`best.pth`.
 
-In multi-agent mode the policy network's input dimension scales with the
-number of agents.  A single shared policy controls all drones (parameter
-sharing).  For independent policies or communication-augmented training
-see the `multi_agent` module (`AttentionComm`, `MultiAgentPolicy`,
-`CentralizedCritic`).
+### 2. Evaluate
 
-## Evaluation
+Load a trained checkpoint and run deterministic evaluation.
 
 ```bash
 hybrid-gcs-eval --env drone_nav \
@@ -111,14 +112,15 @@ hybrid-gcs-eval --env drone_nav \
 
 Key metrics:
 
-- **success_rate** — fraction of episodes where all drones reach goals
-  without collision
-- **mean_reward** — average cumulative reward
-- **mean_length** — average steps to termination
+| Metric | Description |
+|--------|-------------|
+| `success_rate` | Fraction of episodes where all drones reach goals without collision |
+| `mean_reward` | Average cumulative reward |
+| `mean_length` | Average steps to termination |
 
-## Visualization
+### 3. Visualize
 
-### Foxglove Studio
+**Foxglove Studio** (recommended for sharing / recording):
 
 ```bash
 hybrid-gcs-vis --env drone_nav --num-agents 3 \
@@ -131,7 +133,7 @@ Open the `.mcap` file in [Foxglove Studio](https://studio.foxglove.dev).
 Each drone appears as a colored sphere; goals are shown as
 semi-transparent green spheres.
 
-### PyBullet
+**PyBullet** (real-time 3-D window):
 
 ```bash
 hybrid-gcs-vis --env drone_nav --num-agents 3 \
@@ -141,6 +143,29 @@ hybrid-gcs-vis --env drone_nav --num-agents 3 \
 
 A 3-D window shows a ground plane with drone markers (spheres) moving in
 real time.  Use `--offscreen` for headless rendering.
+
+### PPO Hyperparameters
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| `learning_rate` | 1 × 10⁻⁴ | Lower learning rate stabilises multi-step navigation |
+| `gamma` | 0.995 | Long horizon encourages strategic obstacle avoidance |
+| `gae_lambda` | 0.98 | Lower bias for multi-step credit assignment |
+| `clip_ratio` | 0.15 | Conservative policy updates to reduce collision instability |
+| `entropy_coef` | 0.005 | Modest exploration (collision avoidance needs precision) |
+| `value_coef` | 0.5 | Standard value loss weighting |
+| `max_grad_norm` | 0.5 | Gradient clipping for training stability |
+| `epochs` | 10 | Multiple passes per rollout for sample efficiency |
+| `batch_size` | 128 | Larger batches stabilize multi-agent gradients |
+| `num_steps` | 4096 | Longer rollouts capture full navigation episodes |
+
+### Multi-Agent Training Notes
+
+In multi-agent mode the policy network's input dimension scales with the
+number of agents.  A single shared policy controls all drones (parameter
+sharing).  For independent policies or communication-augmented training
+see the `multi_agent` module (`AttentionComm`, `MultiAgentPolicy`,
+`CentralizedCritic`).
 
 ## Python API
 

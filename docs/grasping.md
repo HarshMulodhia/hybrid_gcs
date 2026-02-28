@@ -57,7 +57,15 @@ reward += 10.0      if lifted to target   # success bonus
 The episode terminates when the object reaches `lift_target = 0.3 m`
 (success) or `max_steps` is reached (truncation).
 
-## Training
+## Pipeline
+
+The grasping task follows a three-stage pipeline: **Train → Evaluate → Visualize**.
+
+### 1. Train
+
+Run PPO training to learn a grasping policy.  The trainer collects
+rollout trajectories in the environment, computes Generalized Advantage
+Estimates (GAE), and performs clipped PPO updates.
 
 ```bash
 # Single-arm (default)
@@ -67,20 +75,22 @@ hybrid-gcs-train --env grasping --episodes 200 --seed 42
 hybrid-gcs-train --env grasping --dual-arm --episodes 200 --seed 42
 ```
 
-### PPO Hyperparameters
+Outputs saved to `checkpoints/train/` (configurable via `--output-dir`):
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| `learning_rate` | 3 × 10⁻⁴ | Standard PPO default |
-| `gamma` | 0.99 | Long-horizon lifting requires far-sighted discounting |
-| `gae_lambda` | 0.95 | Balanced bias-variance for advantage estimation |
-| `clip_ratio` | 0.2 | Prevents large policy updates |
-| `entropy_coef` | 0.01 | Encourages exploration during early training |
-| `epochs` | 4 | Multiple passes per rollout |
-| `batch_size` | 64 | Mini-batch size for gradient steps |
-| `num_steps` | 2048 | Rollout length before PPO update |
+| File | Description |
+|------|-------------|
+| `best.pth` | Checkpoint with the highest mean evaluation reward |
+| `latest.pth` | Checkpoint from the final training episode |
+| `training_history.json` | Per-evaluation-interval metrics (reward, success rate, losses) |
+| `train_config.json` | Full configuration for reproducibility |
 
-## Evaluation
+**Note:** `best.pth` is always created — if no evaluation runs (e.g.
+`--episodes` < `--eval-interval`), the latest checkpoint is saved as
+`best.pth`.
+
+### 2. Evaluate
+
+Load a trained checkpoint and run deterministic evaluation episodes.
 
 ```bash
 hybrid-gcs-eval --env grasping --checkpoint checkpoints/train/best.pth --episodes 50
@@ -88,13 +98,19 @@ hybrid-gcs-eval --env grasping --checkpoint checkpoints/train/best.pth --episode
 
 Reported metrics:
 
-- **mean_reward** — average cumulative reward per episode
-- **success_rate** — fraction of episodes where the object was lifted
-- **mean_length** — average episode length (lower is faster)
+| Metric | Description |
+|--------|-------------|
+| `mean_reward` | Average cumulative reward per episode |
+| `success_rate` | Fraction of episodes where the object was lifted |
+| `mean_length` | Average episode length (lower is faster) |
 
-## Visualization
+Use `--output metrics.json` to save results to disk.
 
-### Foxglove Studio
+### 3. Visualize
+
+Replay a trained policy in 3-D using Foxglove Studio or PyBullet.
+
+**Foxglove Studio** (recommended for sharing / recording):
 
 ```bash
 hybrid-gcs-vis --env grasping \
@@ -103,13 +119,10 @@ hybrid-gcs-vis --env grasping \
     --output output/grasping.mcap
 ```
 
-Open the generated `.mcap` file in [Foxglove Studio](https://studio.foxglove.dev).
-Markers:
+Open the `.mcap` file in [Foxglove Studio](https://studio.foxglove.dev).
+Markers: **blue sphere** = end-effector, **orange sphere** = object.
 
-- **Blue sphere** — end-effector
-- **Orange sphere** — object
-
-### PyBullet
+**PyBullet** (real-time 3-D window):
 
 ```bash
 hybrid-gcs-vis --env grasping \
@@ -117,8 +130,23 @@ hybrid-gcs-vis --env grasping \
     --backend pybullet
 ```
 
-A GUI window shows the table, EE marker (sphere), and object (cube)
-moving in real time.  Use `--offscreen` for headless rendering.
+A GUI window shows the table, EE marker, and object moving in real time.
+Use `--offscreen` for headless rendering.
+
+### PPO Hyperparameters
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| `learning_rate` | 3 × 10⁻⁴ | Standard PPO default for continuous control |
+| `gamma` | 0.99 | Long-horizon lifting requires far-sighted discounting |
+| `gae_lambda` | 0.95 | Balanced bias-variance for advantage estimation |
+| `clip_ratio` | 0.2 | Prevents large policy updates |
+| `entropy_coef` | 0.02 | Encourages broader exploration during early training |
+| `value_coef` | 0.5 | Standard value loss weighting |
+| `max_grad_norm` | 0.5 | Gradient clipping for training stability |
+| `epochs` | 10 | Multiple passes per rollout for sample efficiency |
+| `batch_size` | 64 | Mini-batch size for gradient steps |
+| `num_steps` | 2048 | Rollout length before PPO update |
 
 ## Python API
 

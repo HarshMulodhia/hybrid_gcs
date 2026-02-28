@@ -89,7 +89,14 @@ reward += 10.0  if placed within 0.08 m     # stacking bonus
 "Placed" means the object is within 0.08 m of the stack target **and**
 the gripper has been released.
 
-## Training
+## Pipeline
+
+The manipulation task follows a three-stage pipeline:
+**Train → Evaluate → Visualize**.
+
+### 1. Train
+
+Run PPO training for one of the four manipulation tasks.
 
 ```bash
 # Reach (simplest — good for verifying setup)
@@ -105,27 +112,20 @@ hybrid-gcs-train --env manipulation --task push --episodes 200
 hybrid-gcs-train --env manipulation --task stack --episodes 300
 ```
 
-### PPO Hyperparameters
+Outputs saved to `checkpoints/train/` (configurable via `--output-dir`):
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| `learning_rate` | 3 × 10⁻⁴ | Standard PPO default |
-| `gamma` | 0.99 | Multi-step tasks need far-sighted returns |
-| `gae_lambda` | 0.95 | Balanced advantage estimation |
-| `clip_ratio` | 0.2 | Safe policy update bound |
-| `entropy_coef` | 0.01 | Encourages exploration of grasp strategies |
-| `epochs` | 4 | Multiple gradient passes per rollout |
-| `batch_size` | 64 | Mini-batch size |
-| `num_steps` | 2048 | Rollout length before update |
+| File | Description |
+|------|-------------|
+| `best.pth` | Checkpoint with the highest mean evaluation reward |
+| `latest.pth` | Checkpoint from the final training episode |
+| `training_history.json` | Per-evaluation-interval metrics |
+| `train_config.json` | Full configuration for reproducibility |
 
-### Curriculum Suggestion
+**Note:** `best.pth` is always created — if no evaluation runs (e.g.
+`--episodes` < `--eval-interval`), the latest checkpoint is saved as
+`best.pth`.
 
-For the **stack** task, consider a curriculum that starts with the
-**reach** task, progresses to **pick**, and finally **stack**.  The
-`CurriculumManager` in `hybrid_gcs.training` supports linear,
-exponential, step, sigmoid, and performance-based schedules.
-
-## Evaluation
+### 2. Evaluate
 
 ```bash
 hybrid-gcs-eval --env manipulation --task stack \
@@ -140,9 +140,9 @@ Key metrics:
 | `mean_reward` | Average cumulative reward |
 | `mean_length` | Average episode steps (lower = more efficient) |
 
-## Visualization
+### 3. Visualize
 
-### Foxglove Studio
+**Foxglove Studio** (recommended for sharing / recording):
 
 ```bash
 hybrid-gcs-vis --env manipulation --task pick \
@@ -151,13 +151,10 @@ hybrid-gcs-vis --env manipulation --task pick \
     --output output/manipulation_pick.mcap
 ```
 
-Markers:
+Markers: **blue sphere** = end-effector, **orange sphere** = object,
+**green sphere (transparent)** = target.
 
-- **Blue sphere** — end-effector
-- **Orange sphere** — object
-- **Green sphere (transparent)** — target
-
-### PyBullet
+**PyBullet** (real-time 3-D window):
 
 ```bash
 hybrid-gcs-vis --env manipulation --task pick \
@@ -166,6 +163,28 @@ hybrid-gcs-vis --env manipulation --task pick \
 ```
 
 Real-time 3-D rendering of the table, EE, and object markers.
+
+### PPO Hyperparameters
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| `learning_rate` | 3 × 10⁻⁴ | Standard PPO default for continuous control |
+| `gamma` | 0.99 | Multi-step tasks need far-sighted returns |
+| `gae_lambda` | 0.95 | Balanced advantage estimation |
+| `clip_ratio` | 0.2 | Safe policy update bound |
+| `entropy_coef` | 0.015 | Encourages exploration of grasp/push strategies |
+| `value_coef` | 0.5 | Standard value loss weighting |
+| `max_grad_norm` | 0.5 | Gradient clipping for training stability |
+| `epochs` | 10 | Multiple gradient passes per rollout for sample efficiency |
+| `batch_size` | 64 | Mini-batch size |
+| `num_steps` | 2048 | Rollout length before update |
+
+### Curriculum Suggestion
+
+For the **stack** task, consider a curriculum that starts with the
+**reach** task, progresses to **pick**, and finally **stack**.  The
+`CurriculumManager` in `hybrid_gcs.training` supports linear,
+exponential, step, sigmoid, and performance-based schedules.
 
 ## Python API
 
