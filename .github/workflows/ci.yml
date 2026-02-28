@@ -56,7 +56,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Check formatting with black
-        run: black --check hybrid_gcs/ tests/
+        run: black --check --line-length 100 --target-version py39 --target-version py310 --target-version py311 hybrid_gcs/ tests/
 
       - name: Check import order with isort
         run: isort --check-only hybrid_gcs/ tests/
